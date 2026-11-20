@@ -662,6 +662,18 @@
       t.addEventListener('click', function () { setTimeout(render, 0); });
     });
 
+    // 离线收益在 game.js 里只按基础产出算过一次；这里补上股市/舰队/星章的加成
+    var r = st.idle.report;
+    if (r && r.away > 0) {
+      var extra = D().cps * Math.min(r.away, IDLE_CAP_H * 3600 * 1000) / 1000 * r.rate * (mult() - 1);
+      if (extra > 1) {
+        st.dust += extra;
+        st.total += extra;
+        st.stats.idleDust += extra;
+        r.gain += extra;
+      }
+    }
+
     renderStocks(); renderFleet(); renderMini();
     setInterval(function () { slowRender(500); }, 500);
     energyNow();
