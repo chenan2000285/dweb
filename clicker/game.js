@@ -385,6 +385,7 @@
 
   function fmt(n) {
     if (!isFinite(n)) return '∞';
+    if (n >= 1e16) return (n / 1e16).toFixed(2) + '京';
     if (n >= 1e12) return (n / 1e12).toFixed(2) + '万亿';
     if (n >= 1e8) return (n / 1e8).toFixed(2) + '亿';
     if (n >= 1e4) return (n / 1e4).toFixed(2) + '万';

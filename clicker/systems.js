@@ -640,8 +640,11 @@
     renderMini();
   }
 
+  var attached = false;
+
   function attach() {
-    if (!window.DD) return;
+    if (!window.DD || attached) return;
+    attached = true;
     var st = S();
     TICKERS.forEach(function (t) {
       if (!st.stocks.prices[t.id]) st.stocks.prices[t.id] = 1;
@@ -652,6 +655,11 @@
     $('miniClose').addEventListener('click', closeGame);
     $('miniModal').addEventListener('click', function (e) {
       if (e.target === $('miniModal')) closeGame();
+    });
+
+    // 切标签立刻刷新，别让玩家看到旧的禁用按钮
+    document.querySelectorAll('.tab').forEach(function (t) {
+      t.addEventListener('click', function () { setTimeout(render, 0); });
     });
 
     renderStocks(); renderFleet(); renderMini();
@@ -672,3 +680,6 @@
     badges: badgeCount
   };
 })(window);
+
+// game.js 先执行，等它暴露好 DD 再挂载
+if (window.DD) window.DDSystems.attach();
