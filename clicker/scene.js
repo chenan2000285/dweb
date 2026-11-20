@@ -51,60 +51,60 @@
      ring: 光环颜色与倾斜
   ------------------------------------------------------- */
   var PALETTES = [
-    { // 0 暮紫
-      accent: '#8b7bff',
-      planet: { base: '#6f5cff', light: '#c9beff', dark: '#1a1238', blotch: '#4a3796', blotch2: '#9c8bff' },
-      ring: { color: '#c6baff', tilt: -0.34 },
+    { // 0 靛蓝：旧天文图上的墨蓝
+      accent: '#7e9cb0',
+      planet: { base: '#46636f', light: '#b9cbd6', dark: '#16232b', blotch: '#2e4750', blotch2: '#9fb3bf' },
+      ring: { color: '#b9cbd6', tilt: -0.34 },
       sky: [
-        { h: 0, top: '#0b0820', bot: '#05040e' },
-        { h: 5, top: '#241a4e', bot: '#0b0920' },
-        { h: 7, top: '#6b4a9c', bot: '#241a44' },
-        { h: 12, top: '#463a96', bot: '#14102e' },
-        { h: 17.5, top: '#8d4a7e', bot: '#2a1338' },
-        { h: 20, top: '#1a1238', bot: '#06050f' },
-        { h: 24, top: '#0b0820', bot: '#05040e' },
+        { h: 0, top: '#14151a', bot: '#0b0b0e' },
+        { h: 5, top: '#242a30', bot: '#12141a' },
+        { h: 7, top: '#5c6b72', bot: '#2a3036' },
+        { h: 12, top: '#6e7e84', bot: '#2c3338' },
+        { h: 17.5, top: '#7a5e52', bot: '#33241e' },
+        { h: 20, top: '#1a1a1e', bot: '#0c0c10' },
+        { h: 24, top: '#14151a', bot: '#0b0b0e' },
       ],
     },
-    { // 1 烈焰
-      accent: '#ff8a4c',
-      planet: { base: '#5a1a08', light: '#ffd39a', dark: '#250703', blotch: '#ff7a33', blotch2: '#ffbe76' },
-      ring: { color: '#ffbe76', tilt: 0.30 },
+    { // 1 赤陶：窑火与锈红
+      accent: '#c07a4b',
+      planet: { base: '#8a4a2a', light: '#e6c6a2', dark: '#2a150c', blotch: '#5e2f1a', blotch2: '#d9a472' },
+      ring: { color: '#d9a472', tilt: 0.30 },
       sky: [
-        { h: 0, top: '#1a0703', bot: '#0a0302' },
-        { h: 5, top: '#3a1208', bot: '#160604' },
-        { h: 7, top: '#8a2c10', bot: '#3a1208' },
-        { h: 12, top: '#7a2410', bot: '#2a0a06' },
-        { h: 17.5, top: '#b03a12', bot: '#4a1206' },
-        { h: 20, top: '#2a0c05', bot: '#0c0302' },
-        { h: 24, top: '#1a0703', bot: '#0a0302' },
+        { h: 0, top: '#150f0b', bot: '#0a0705' },
+        { h: 5, top: '#2a1810', bot: '#140b07' },
+        { h: 7, top: '#7a4227', bot: '#2e1710' },
+        { h: 12, top: '#6e3e2a', bot: '#2a150f' },
+        { h: 17.5, top: '#8e4e2c', bot: '#3a1c10' },
+        { h: 20, top: '#241310', bot: '#0d0706' },
+        { h: 24, top: '#150f0b', bot: '#0a0705' },
       ],
     },
-    { // 2 霜蓝
-      accent: '#5ce1e6',
-      planet: { base: '#8fdfe8', light: '#f0feff', dark: '#08222e', blotch: '#2c8ea3', blotch2: '#d6fbff' },
-      ring: { color: '#bff4ff', tilt: -0.22 },
+    { // 2 霜青：雨后的石绿
+      accent: '#8fa9a3',
+      planet: { base: '#4c6e68', light: '#d2dfd8', dark: '#172622', blotch: '#2f4a45', blotch2: '#b4c8c0' },
+      ring: { color: '#cbd9d3', tilt: -0.22 },
       sky: [
-        { h: 0, top: '#04121c', bot: '#020a10' },
-        { h: 5, top: '#0d3a4e', bot: '#04141e' },
-        { h: 7, top: '#2a7a96', bot: '#0a2a3a' },
-        { h: 12, top: '#1f6f8a', bot: '#06202c' },
-        { h: 17.5, top: '#5a6aa8', bot: '#101c38' },
-        { h: 20, top: '#081c2c', bot: '#020a12' },
-        { h: 24, top: '#04121c', bot: '#020a10' },
+        { h: 0, top: '#0f1517', bot: '#070b0c' },
+        { h: 5, top: '#1b2a2c', bot: '#0c1517' },
+        { h: 7, top: '#4a6a6a', bot: '#1d2e2e' },
+        { h: 12, top: '#3f5f60', bot: '#182828' },
+        { h: 17.5, top: '#6b4f46', bot: '#2a1e1a' },
+        { h: 20, top: '#121a1b', bot: '#080d0e' },
+        { h: 24, top: '#0f1517', bot: '#070b0c' },
       ],
     },
-    { // 3 翡翠
-      accent: '#63e6a0',
-      planet: { base: '#3fa877', light: '#d6ffe4', dark: '#05241a', blotch: '#1d6e4b', blotch2: '#8ef0b4' },
-      ring: { color: '#b8ffd4', tilt: 0.26 },
+    { // 3 苔绿：旧地图上的橄榄
+      accent: '#8a9a5b',
+      planet: { base: '#536330', light: '#cbd6a9', dark: '#1c2413', blotch: '#3a471f', blotch2: '#abb87b' },
+      ring: { color: '#c2cfa5', tilt: 0.26 },
       sky: [
-        { h: 0, top: '#04140e', bot: '#010806' },
-        { h: 5, top: '#123a26', bot: '#04140c' },
-        { h: 7, top: '#3a7a3e', bot: '#0d2a16' },
-        { h: 12, top: '#2f6a3e', bot: '#0a2414' },
-        { h: 17.5, top: '#7a5a2a', bot: '#241a0c' },
-        { h: 20, top: '#0a2015', bot: '#020c08' },
-        { h: 24, top: '#04140e', bot: '#010806' },
+        { h: 0, top: '#101309', bot: '#080a05' },
+        { h: 5, top: '#1e2414', bot: '#0e110a' },
+        { h: 7, top: '#4e5c33', bot: '#202814' },
+        { h: 12, top: '#3f4c2a', bot: '#1a2010' },
+        { h: 17.5, top: '#6e5a30', bot: '#2c2412' },
+        { h: 20, top: '#14180c', bot: '#090b05' },
+        { h: 24, top: '#101309', bot: '#080a05' },
       ],
     },
   ];
@@ -380,7 +380,7 @@
           sx += (rng() - 0.5) * 60; sy += (rng() - 0.5) * 34;
           g.lineTo(sx, sy);
         }
-        g.strokeStyle = rgba(i % 3 ? '#ff9a4a' : '#ffd08a', 0.30 + rng() * 0.45);
+        g.strokeStyle = rgba(i % 3 ? '#c07a4b' : '#d9a472', 0.30 + rng() * 0.45);
         g.lineWidth = 1 + rng() * 2.6;
         g.stroke();
       }
@@ -390,7 +390,7 @@
         var ax = rng() * W, ay = rng() * H;
         g.beginPath(); g.moveTo(ax, ay);
         g.lineTo(ax + (rng() - 0.5) * 90, ay + (rng() - 0.5) * 30);
-        g.strokeStyle = rgba('#ffffff', 0.14 + rng() * 0.3);
+        g.strokeStyle = rgba('#fff6e3', 0.14 + rng() * 0.3);
         g.lineWidth = 0.7 + rng() * 1.2;
         g.stroke();
       }
@@ -404,15 +404,15 @@
           rx += (rng() - 0.5) * 70; ry += (rng() - 0.3) * 40;
           g.lineTo(rx, ry);
         }
-        g.strokeStyle = rgba('#7fdcff', 0.20 + rng() * 0.25);
+        g.strokeStyle = rgba('#a9c4c0', 0.20 + rng() * 0.25);
         g.lineWidth = 1.4 + rng() * 2.2;
         g.stroke();
       }
       for (i = 0; i < 16; i++) {
         var dx = rng() * W, dy = rng() * H, dr = 12 + rng() * 26;
         var dg = g.createRadialGradient(dx, dy, 0, dx, dy, dr);
-        dg.addColorStop(0, rgba('#0e5a3c', 0.55));
-        dg.addColorStop(1, rgba('#0e5a3c', 0));
+        dg.addColorStop(0, rgba('#33482f', 0.55));
+        dg.addColorStop(1, rgba('#33482f', 0));
         g.fillStyle = dg;
         g.beginPath(); g.arc(dx, dy, dr, 0, TAU); g.fill();
       }
@@ -474,7 +474,7 @@
         vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 20,
         life: rand(0.4, 0.9), max: 0.9,
         size: rand(1.1, crit ? 3.4 : 2.4),
-        color: i % 5 === 0 ? '#ffd166' : (i % 3 === 0 ? '#ffffff' : pal.accent),
+        color: i % 5 === 0 ? '#d8b25a' : (i % 3 === 0 ? '#fff6e3' : pal.accent),
       });
     }
     this.rings.push({ x: x, y: y, r: this.r * 0.16, life: 1, crit: !!crit });
@@ -610,7 +610,7 @@
         vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 30,
         life: rand(0.35, 0.8), max: 0.8,
         size: rand(1, 2.2),
-        color: i % 3 ? '#ffe9a8' : pal.accent,
+        color: i % 3 ? '#e3c27a' : pal.accent,
       });
     }
   };
@@ -695,13 +695,13 @@
       var my = h * 1.0 - Math.sin(Math.PI * t.moonT) * h * 0.62;
       var mr = Math.max(7, r * 0.12);
       var mg = ctx.createRadialGradient(mx, my, mr * 0.6, mx, my, mr * 4.2);
-      mg.addColorStop(0, 'rgba(220,230,255,' + (0.22 * night) + ')');
-      mg.addColorStop(1, 'rgba(220,230,255,0)');
+      mg.addColorStop(0, 'rgba(230,223,206,' + (0.22 * night) + ')');
+      mg.addColorStop(1, 'rgba(230,223,206,0)');
       ctx.fillStyle = mg;
       ctx.beginPath(); ctx.arc(mx, my, mr * 4.2, 0, TAU); ctx.fill();
-      ctx.fillStyle = 'rgba(235,242,255,' + (0.92 * night) + ')';
+      ctx.fillStyle = 'rgba(240,234,219,' + (0.92 * night) + ')';
       ctx.beginPath(); ctx.arc(mx, my, mr, 0, TAU); ctx.fill();
-      ctx.fillStyle = 'rgba(180,192,225,' + (0.35 * night) + ')';
+      ctx.fillStyle = 'rgba(206,197,178,' + (0.35 * night) + ')';
       ctx.beginPath(); ctx.arc(mx - mr * 0.3, my + mr * 0.2, mr * 0.22, 0, TAU); ctx.fill();
       ctx.beginPath(); ctx.arc(mx + mr * 0.35, my - mr * 0.3, mr * 0.15, 0, TAU); ctx.fill();
     }
@@ -780,9 +780,9 @@
 
     // 夜面压暗
     var dg = ctx.createLinearGradient(sx, sy, cx * 2 - sx, cy * 2 - sy);
-    dg.addColorStop(0, 'rgba(4,4,14,0)');
-    dg.addColorStop(0.5, 'rgba(4,4,14,' + (0.22 + 0.42 * night) + ')');
-    dg.addColorStop(1, 'rgba(2,2,8,' + (0.45 + 0.4 * night) + ')');
+    dg.addColorStop(0, 'rgba(10,8,6,0)');
+    dg.addColorStop(0.5, 'rgba(10,8,6,' + (0.22 + 0.42 * night) + ')');
+    dg.addColorStop(1, 'rgba(8,7,5,' + (0.45 + 0.4 * night) + ')');
     ctx.fillStyle = dg;
     ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
 
@@ -793,7 +793,7 @@
       for (var j = 0; j < this.lights.length; j++) {
         var L = this.lights[j];
         var a = night * (0.35 + 0.3 * Math.sin(this.t * 1.4 + L.ph));
-        ctx.fillStyle = rgba('#ffd08a', clamp(a, 0, 0.8));
+        ctx.fillStyle = rgba('#d9a472', clamp(a, 0, 0.8));
         ctx.beginPath();
         ctx.arc(cx + L.x * r, cy + L.y * r, Math.max(0.6, L.s * r), 0, TAU);
         ctx.fill();
@@ -832,9 +832,9 @@
         var px = cx + nx * r, py = cy + c.y * r;
         var rad = c.s * r * 0.55;
         var cg = ctx.createRadialGradient(px, py, 0, px, py, rad);
-        cg.addColorStop(0, 'rgba(242,246,255,' + (0.26 * cfg.clouds * c.a) + ')');
-        cg.addColorStop(0.6, 'rgba(242,246,255,' + (0.10 * cfg.clouds * c.a) + ')');
-        cg.addColorStop(1, 'rgba(242,246,255,0)');
+        cg.addColorStop(0, 'rgba(244,239,225,' + (0.26 * cfg.clouds * c.a) + ')');
+        cg.addColorStop(0.6, 'rgba(244,239,225,' + (0.10 * cfg.clouds * c.a) + ')');
+        cg.addColorStop(1, 'rgba(244,239,225,0)');
         ctx.fillStyle = cg;
         ctx.beginPath(); ctx.arc(px, py, rad, 0, TAU); ctx.fill();
       }
@@ -849,7 +849,7 @@
         ctx.moveTo(x, y);
         ctx.lineTo(x - r * 0.035, y + r * 0.11 * d.l);
       }
-      ctx.strokeStyle = 'rgba(190,215,255,.55)';
+      ctx.strokeStyle = 'rgba(214,206,186,.55)';
       ctx.lineWidth = Math.max(0.8, r * 0.012);
       ctx.lineCap = 'round';
       ctx.stroke();
@@ -871,9 +871,9 @@
       for (i = 0; i < 3; i++) {
         var fy = cy + (i - 1) * r * 0.45 + Math.sin(this.t * 0.4 + i) * r * 0.05;
         var fg = ctx.createLinearGradient(cx - r, 0, cx + r, 0);
-        fg.addColorStop(0, 'rgba(220,235,255,0)');
-        fg.addColorStop(0.5, 'rgba(220,235,255,' + (0.16 * cfg.fog) + ')');
-        fg.addColorStop(1, 'rgba(220,235,255,0)');
+        fg.addColorStop(0, 'rgba(232,226,209,0)');
+        fg.addColorStop(0.5, 'rgba(232,226,209,' + (0.16 * cfg.fog) + ')');
+        fg.addColorStop(1, 'rgba(232,226,209,0)');
         ctx.fillStyle = fg;
         ctx.beginPath();
         ctx.ellipse(cx + Math.sin(this.t * 0.3 + i) * r * 0.12, fy, r * 0.98, r * 0.16, 0, 0, TAU);
@@ -883,7 +883,7 @@
 
     // 雷雨闪光
     if (this.boltFlash > 0.01) {
-      ctx.fillStyle = 'rgba(215,230,255,' + (this.boltFlash * 0.4) + ')';
+      ctx.fillStyle = 'rgba(226,219,201,' + (this.boltFlash * 0.4) + ')';
       ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
     }
   };
@@ -913,8 +913,8 @@
 
       // 尾焰
       var fg = ctx.createRadialGradient(-5 * scale, 0, 0, -5 * scale, 0, 12 * scale);
-      fg.addColorStop(0, rgba('#bfe4ff', 0.85));
-      fg.addColorStop(1, rgba('#bfe4ff', 0));
+      fg.addColorStop(0, rgba('#c8d6d6', 0.85));
+      fg.addColorStop(1, rgba('#c8d6d6', 0));
       ctx.fillStyle = fg;
       ctx.beginPath(); ctx.arc(-5 * scale, 0, 12 * scale, 0, TAU); ctx.fill();
 
@@ -925,7 +925,7 @@
       ctx.lineTo(-5 * scale, 0);
       ctx.lineTo(-2.5 * scale, -4.2 * scale);
       ctx.closePath();
-      ctx.fillStyle = '#eef5ff';
+      ctx.fillStyle = '#efe3cb';
       ctx.fill();
       ctx.strokeStyle = 'rgba(255,255,255,.6)';
       ctx.lineWidth = Math.max(0.5, 0.6 * scale);
@@ -948,7 +948,7 @@
       var rg = this.rings[i];
       ctx.beginPath();
       ctx.arc(rg.x, rg.y, rg.r, 0, TAU);
-      ctx.strokeStyle = rgba(rg.crit ? '#ffd166' : '#ffffff', Math.max(0, rg.life) * (rg.crit ? 0.85 : 0.55));
+      ctx.strokeStyle = rgba(rg.crit ? '#d8b25a' : '#fff6e3', Math.max(0, rg.life) * (rg.crit ? 0.85 : 0.55));
       ctx.lineWidth = Math.max(1, (rg.crit ? 3 : 2) * clamp(rg.life + 0.2, 0, 1));
       ctx.stroke();
     }
@@ -974,7 +974,7 @@
     var ctx = this.ctx, w = this.w, h = this.h;
 
     if (cfg.tint > 0) {
-      ctx.fillStyle = 'rgba(30,34,48,' + cfg.tint + ')';
+      ctx.fillStyle = 'rgba(34,28,21,' + cfg.tint + ')';
       ctx.fillRect(0, 0, w, h);
     }
 
@@ -982,17 +982,17 @@
       var a = clamp(this.bolt.t / 0.5, 0, 1);
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
-      ctx.fillStyle = 'rgba(200,220,255,' + (0.16 * a) + ')';
+      ctx.fillStyle = 'rgba(216,209,190,' + (0.16 * a) + ')';
       ctx.fillRect(0, 0, w, h);
       ctx.beginPath();
       for (var i = 0; i < this.bolt.pts.length; i++) {
         var pt = this.bolt.pts[i];
         if (i === 0) ctx.moveTo(pt.x, pt.y); else ctx.lineTo(pt.x, pt.y);
       }
-      ctx.strokeStyle = 'rgba(226,238,255,' + (0.9 * a) + ')';
+      ctx.strokeStyle = 'rgba(236,230,214,' + (0.9 * a) + ')';
       ctx.lineWidth = 2;
       ctx.shadowBlur = 14;
-      ctx.shadowColor = '#a9c6ff';
+      ctx.shadowColor = '#c4d2d8';
       ctx.stroke();
       ctx.restore();
     }

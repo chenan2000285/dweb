@@ -1047,7 +1047,7 @@
   let confettiTimer = 0;
   function spawnConfetti(count) {
     el.confetti.innerHTML = '';
-    const colors = ['#ffd166', '#8b7bff', '#5ce1e6', '#ff7b9c', '#9dff8b'];
+    const colors = ['#d8b25a', '#7e9cb0', '#8fa9a3', '#b5654f', '#a8b87b'];
     const n = count || 60;
     for (let i = 0; i < n; i++) {
       const p = document.createElement('i');
@@ -1209,10 +1209,10 @@
     ctx.setLineDash([]);
 
     const up = path[Math.max(0, count - 1)] >= path[0];
-    const line = up ? '#63e6a0' : '#ff6b8a';
+    const line = up ? '#8a9a5b' : '#b5654f';
 
     const grad = ctx.createLinearGradient(0, 0, 0, h);
-    grad.addColorStop(0, up ? 'rgba(99,230,160,.35)' : 'rgba(255,107,138,.35)');
+    grad.addColorStop(0, up ? 'rgba(138,154,91,.32)' : 'rgba(181,101,79,.32)');
     grad.addColorStop(1, 'rgba(0,0,0,0)');
 
     ctx.beginPath();
@@ -1240,7 +1240,7 @@
     ctx.fill();
     ctx.beginPath();
     ctx.arc(lx, ly, 6, 0, Math.PI * 2);
-    ctx.fillStyle = up ? 'rgba(99,230,160,.18)' : 'rgba(255,107,138,.18)';
+    ctx.fillStyle = up ? 'rgba(138,154,91,.18)' : 'rgba(181,101,79,.18)';
     ctx.fill();
   }
 
@@ -1406,10 +1406,10 @@
     document.body.dataset.phase = ti.phase;
 
     const bg = {
-      dawn: 'radial-gradient(120% 70% at 50% -10%, rgba(255,140,90,.18), transparent 62%)',
-      day: 'radial-gradient(120% 70% at 50% -10%, rgba(120,160,255,.14), transparent 62%)',
-      dusk: 'radial-gradient(120% 70% at 50% -10%, rgba(255,110,140,.18), transparent 62%)',
-      night: 'radial-gradient(140% 90% at 50% -20%, rgba(20,16,60,.5), transparent 72%)',
+      dawn: 'radial-gradient(120% 70% at 50% -10%, rgba(192,122,75,.16), transparent 62%)',
+      day: 'radial-gradient(120% 70% at 50% -10%, rgba(126,156,176,.14), transparent 62%)',
+      dusk: 'radial-gradient(120% 70% at 50% -10%, rgba(181,101,79,.16), transparent 62%)',
+      night: 'radial-gradient(140% 90% at 50% -20%, rgba(26,18,12,.55), transparent 72%)',
     };
     el.ambient.style.background = bg[ti.phase] || bg.night;
   }
