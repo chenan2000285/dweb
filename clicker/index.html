@@ -74,12 +74,26 @@
     </div>
   </section>
 
+  <section class="reso" id="reso">
+    <div class="reso-head">
+      <span class="reso-title">星核共振</span>
+      <span class="reso-lv" id="resoLayers">共振 0/8 层</span>
+    </div>
+    <div class="reso-track" id="resoBar">
+      <div class="reso-zone" id="resoZone"></div>
+      <div class="reso-needle" id="resoNeedle"></div>
+    </div>
+    <div class="reso-foot">
+      <button id="resoBtn" class="reso-btn" type="button">按住蓄力，进绿区松手</button>
+      <span class="reso-hint" id="resoHint"></span>
+    </div>
+  </section>
+
   <p class="hint" id="hint">点点星球，收获星尘</p>
 
   <nav class="tabs">
     <button class="tab active" data-tab="up" type="button">升级</button>
     <button class="tab" data-tab="asset" type="button">资产</button>
-    <button class="tab" data-tab="stock" type="button">股市</button>
     <button class="tab" data-tab="rank" type="button">身份</button>
   </nav>
 
@@ -90,13 +104,6 @@
   <section class="panel" id="panel-asset">
     <p class="panel-tip">买车买房攒声望，声望和星尘都够了才能晋升身份。</p>
     <ul id="assets" class="shop-list"></ul>
-  </section>
-
-  <section class="panel" id="panel-stock">
-    <p class="panel-tip">投入星尘，60 秒后结算：涨了本利一起拿回，还加声望；跌了只亏投入的那部分。同时只能持有一笔。</p>
-    <div id="stockActive" class="stock-active hidden"></div>
-    <ul id="stocks" class="stock-list"></ul>
-    <p class="panel-tip small" id="stockNote"></p>
   </section>
 
   <section class="panel" id="panel-rank">
@@ -142,12 +149,13 @@
   <div class="modal-box">
     <h2>欢迎来到点点星球 👋</h2>
     <ol class="guide-list">
-      <li>点中间那颗星球拿星尘。连续点会攒<b>星尘连锁</b>：每 5 连 +10% 收益（最多 +100%），每 10 连炸一次<b>星尘爆发</b>。</li>
+      <li>点中间那颗星球拿星尘。连续点会攒<b>星尘连锁</b>：每 5 连 +6% 收益（最多 +60%），每 10 连炸一次<b>星尘爆发</b>。</li>
       <li>星球会跟着<b>手机时间</b>和<b>真实天气</b>变样子：白天亮、夜里暗，下雨下雪打雷都不一样。</li>
       <li>「升级」提高点击和每秒产出。每颗星球的升级项目都不一样，越往后项目越多、单次收益越高。</li>
-      <li>「资产」买车买房换声望。累计星尘和声望都达标 → 晋升身份，当前星尘翻倍，点击力 ×2。</li>
-      <li>「股市」投星尘赌 60 秒：涨了本利全回、还按盈利加声望；跌了只亏你投进去的那部分。跃迁前必须结算完。</li>
-      <li>每颗星球有<b>独立成就</b>，跃迁后重来一套。一颗星球身份全满，再攒够门槛星尘，就能跃迁到下一颗。</li>
+      <li>「资产」买车买房换声望。累计星尘、声望、<b>共振层数</b>都达标 → 晋升身份，当前星尘翻倍，点击力 ×1.6。</li>
+      <li><b>星核共振</b>是本作的核心：按住它蓄力，指示条来回跑，<b>松手时落在绿区</b>就算成功，层数 +1，全产出 +7%（最高 8 层）；歪了就掉一层。22 秒不共振会自己掉层。</li>
+      <li>越往后的身份越吃共振层数——<b>不共振，身份就卡住</b>。所以别只挂机，隔一会儿来打一次拍子。</li>
+      <li>每颗星球有<b>独立成就</b>，跃迁后重来一套（共振层数也清零）。一颗星球身份全满，再攒够门槛星尘，就能跃迁到下一颗。</li>
       <li>点左上角天气标签可以选城市、刷新天气。没网时用模拟天气，画面照样会变。</li>
     </ol>
     <button id="guideOk" class="primary" type="button">开始游戏</button>
