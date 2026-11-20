@@ -95,6 +95,9 @@
     <button class="tab active" data-tab="up" type="button">升级</button>
     <button class="tab" data-tab="asset" type="button">资产</button>
     <button class="tab" data-tab="rank" type="button">身份</button>
+    <button class="tab" data-tab="stock" type="button">股市</button>
+    <button class="tab" data-tab="fleet" type="button">舰队</button>
+    <button class="tab" data-tab="play" type="button">玩法</button>
   </nav>
 
   <section class="panel active" id="panel-up">
@@ -125,6 +128,46 @@
     <ul id="gachs" class="ach-list"></ul>
   </section>
 
+  <section class="panel" id="panel-stock">
+    <div class="sys-head">
+      <div><b id="stkCapital">0</b><span>持仓市值</span></div>
+      <div><b id="stkMult">×1.00</b><span>资本加成</span></div>
+      <div><b id="stkCash">0</b><span>股息收入</span></div>
+    </div>
+    <p class="panel-tip">低买高卖赚差价，持仓每 2 分钟分红一次。持仓市值（资本）会放大你所有产出，后期身份也要求它。</p>
+    <ul id="stkList" class="stock-list"></ul>
+    <h2>市场动态</h2>
+    <ul id="stkNews" class="news-list"></ul>
+  </section>
+
+  <section class="panel" id="panel-fleet">
+    <div class="sys-head">
+      <div><b id="fltPower">0</b><span>舰队战力</span></div>
+      <div><b id="fltMult">×1.00</b><span>舰队加成</span></div>
+      <div><b id="fltDone">0</b><span>完成远征</span></div>
+    </div>
+    <h2>远征泊位</h2>
+    <p class="panel-tip">按真实时间计时，回来一次性带回大量星尘；关掉页面也照样在飞。</p>
+    <ul id="expSlots" class="exp-list"></ul>
+    <h2>船坞</h2>
+    <p class="panel-tip">买船提升战力，战力越高能去越远的航线，也放大全部产出。</p>
+    <ul id="shipList" class="shop-list"></ul>
+  </section>
+
+  <section class="panel" id="panel-play">
+    <div class="sys-head">
+      <div><b id="miniEnergy">8/8</b><span>游玩次数</span></div>
+      <div><b id="miniBadge">0</b><span>星章</span></div>
+      <div><b id="miniWins">0</b><span>小游戏胜利</span></div>
+    </div>
+    <h2>休闲小游戏</h2>
+    <p class="panel-tip">每玩一次消耗 1 次机会，8 分钟回 1 次。奖励按你当前产出结算，比单纯点击高得多；每赢 2 局得 1 枚星章，星章又加全局产出。</p>
+    <ul id="miniList" class="mini-list"></ul>
+    <h2>挂机</h2>
+    <div class="idle-card" id="idleCard"></div>
+    <div id="idleClaim"></div>
+  </section>
+
   <footer class="bottom">
     <span id="saveTip" class="tip">进度自动保存</span>
     <button id="reset" class="reset" type="button">重置</button>
@@ -149,14 +192,15 @@
   <div class="modal-box">
     <h2>欢迎来到点点星球 👋</h2>
     <ol class="guide-list">
-      <li>点中间那颗星球拿星尘。连续点会攒<b>星尘连锁</b>：每 5 连 +6% 收益（最多 +60%），每 10 连炸一次<b>星尘爆发</b>。</li>
-      <li>星球会跟着<b>手机时间</b>和<b>真实天气</b>变样子：白天亮、夜里暗，下雨下雪打雷都不一样。</li>
-      <li>「升级」提高点击和每秒产出。每颗星球的升级项目都不一样，越往后项目越多、单次收益越高。</li>
-      <li>「资产」买车买房换声望。累计星尘、声望、<b>共振层数</b>都达标 → 晋升身份，当前星尘翻倍，点击力 ×1.6。</li>
-      <li><b>星核共振</b>是本作的核心：按住它蓄力，指示条来回跑，<b>松手时落在绿区</b>就算成功，层数 +1，全产出 +7%（最高 8 层）；歪了就掉一层。22 秒不共振会自己掉层。</li>
-      <li>越往后的身份越吃共振层数——<b>不共振，身份就卡住</b>。所以别只挂机，隔一会儿来打一次拍子。</li>
-      <li>每颗星球有<b>独立成就</b>，跃迁后重来一套（共振层数也清零）。一颗星球身份全满，再攒够门槛星尘，就能跃迁到下一颗。</li>
-      <li>点左上角天气标签可以选城市、刷新天气。没网时用模拟天气，画面照样会变。</li>
+      <li>点星球拿星尘，但<b>点击是全游戏最弱的赚钱方式</b>，只够启动。连锁、暴击、共振只是添头。</li>
+      <li><b>真正的大头有三个</b>：股市（资本加成）、舰队（远征一次顶几十分钟挂机）、小游戏（一次顶两三分钟产出，还掉星章）。</li>
+      <li>股市：低买高卖，持仓每 2 分钟分红；<b>市值越高，全局产出乘得越多</b>，后面几个身份直接要求市值。</li>
+      <li>舰队：船坞买船 → 去近地/深空/虫洞远征，按真实时间计时；战力越高能去越远，回来一次给一大笔。</li>
+      <li>小游戏：3 个休闲玩法，8 分钟回一次机会（最多 8 次）；赢 2 局 1 枚星章，星章加全局产出，后期身份也要求星章。</li>
+      <li>挂机：关掉页面也按离线效率生产，最多累计 12 小时；「采集核心」把效率从 55% 拉到 100%，还能买自动点击无人机。</li>
+      <li>身份晋升要同时满足：累计星尘、声望、<b>共振层数</b>，后期还要<b>股票市值、舰队战力、星章</b>。四条腿缺一条都卡住。</li>
+      <li>星核共振：按住蓄力，松手落在绿区 +1 层，全产出 +7%（最高 8 层），22 秒不碰会掉层。</li>
+      <li>四颗星球，每颗 9 个身份、10 项升级、7 种资产。正常玩到通关大约要一整天，慢慢来。</li>
     </ol>
     <button id="guideOk" class="primary" type="button">开始游戏</button>
   </div>
@@ -207,11 +251,22 @@
   </div>
 </div>
 
+<!-- 小游戏 -->
+<div id="miniModal" class="modal hidden">
+  <div class="modal-box mini-box">
+    <h2 id="miniTitle">小游戏</h2>
+    <p class="panel-tip" id="miniDesc"></p>
+    <div id="miniBody" class="mini-body"></div>
+    <div class="mini-foot"><button id="miniClose" class="ghost" type="button">关闭</button></div>
+  </div>
+</div>
+
 <div id="confetti" class="confetti"></div>
 <div id="flash" class="flash"></div>
 <div id="toast" class="toast"></div>
 
 <script src="scene.js"></script>
 <script src="game.js"></script>
+<script src="systems.js"></script>
 </body>
 </html>

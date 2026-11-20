@@ -7,14 +7,14 @@
 
   /* ===================== 1. 配置 ===================== */
 
-  const SAVE_KEY = 'aiweb.clicker.v3';
+  const SAVE_KEY = 'aiweb.clicker.v4';
   const WX_KEY = 'aiweb.clicker.wx.v1';
   const CITY_KEY = 'aiweb.clicker.city.v1';
   const LOC_KEY = 'aiweb.clicker.loc.v1';
   const INTRO_KEY = 'aiweb.clicker.intro.v1';
 
   const AUTOSAVE_MS = 5000;
-  const OFFLINE_CAP_MS = 8 * 3600 * 1000;
+  const OFFLINE_CAP_MS = 12 * 3600 * 1000;
   const CRIT_MULTI = 3;          // 暴击倍率
   const CRIT_CAP = 0.35;         // 暴击率上限
   const CLICK_LIMIT = 16;        // 每秒最多算这么多次点击（防连点器）
@@ -28,166 +28,203 @@
 
   // 每颗星球：gain 收益倍率；升级/资产/共振门槛/成就全部独立
   // kind: click 点击 / cps 每秒 / crit 暴击率 / mult 全部产出加成
-  const WORLDS = [
-    {
-      name: '暮紫星球', emoji: '🪐', gate: 1000000, gain: 1,
-      resoNeed: [0, 0, 1, 2, 3, 4, 5],
-      ranks: [
-        { name: '拾尘者', icon: '🌫️', dust: 50, rep: 0 },
-        { name: '星尘学徒', icon: '🌱', dust: 450, rep: 10 },
-        { name: '街角名人', icon: '✨', dust: 2200, rep: 35 },
-        { name: '有车一族', icon: '🚗', dust: 9000, rep: 110 },
-        { name: '有房一族', icon: '🏠', dust: 45000, rep: 280 },
-        { name: '星际商人', icon: '💼', dust: 225000, rep: 700 },
-        { name: '星系名流', icon: '🌟', dust: 450000, rep: 840 }
-      ],
-      upgrades: [
-        { id: 'finger', name: '星尘手指', desc: '每次点击 +1', base: 10, growth: 1.15, max: 200, kind: 'click', amount: 1 },
-        { id: 'drone', name: '采集无人机', desc: '每秒 +0.5，多一艘飞船', base: 50, growth: 1.18, max: 200, kind: 'cps', amount: 0.5 },
-        { id: 'crit', name: '幸运符', desc: '暴击率 +3%（×3 收益）', base: 300, growth: 3, max: 8, kind: 'crit', amount: 0.03 },
-        { id: 'reactor', name: '星核反应堆', desc: '每秒 +5 星尘', base: 1200, growth: 1.2, max: 200, kind: 'cps', amount: 5 }
-      ],
-      assets: [
-        { id: 'car', name: '小汽车', icon: '🚗', base: 500, growth: 1.9, rep: 10 },
-        { id: 'sport', name: '跑车', icon: '🏎️', base: 5000, growth: 1.9, rep: 30 },
-        { id: 'flat', name: '公寓', icon: '🏢', base: 20000, growth: 1.9, rep: 60 },
-        { id: 'luxury', name: '豪华跑车', icon: '🚙', base: 60000, growth: 1.9, rep: 120 },
-        { id: 'villa', name: '别墅', icon: '🏡', base: 250000, growth: 1.9, rep: 400 },
-        { id: 'palace', name: '星际豪宅', icon: '🛸', base: 1500000, growth: 1.9, rep: 1500 }
-      ],
-      achs: [
-        { id: 'first', name: '第一次触碰',        desc: '点击星球 1 次',    reward: 5, ok: () => state.wclicks >= 1 },
-        { id: 'asset1', name: '有点家当',         desc: '买下任意一件资产',    reward: 60, ok: () => Object.keys(state.assets).some((k) => state.assets[k] > 0) },
-        { id: 'chain25', name: '手感来了',         desc: '达成 25 连击',    reward: 150, ok: () => state.comboBest >= 25 },
-        { id: 'reso3', name: '第一次共振',        desc: '把星核共振推到 3 层',    reward: 400, ok: () => state.reso >= 3 },
-        { id: 'rep200', name: '小有名气',         desc: '声望达到 200',    reward: 500, ok: () => totalRep() >= 200 },
-        { id: 'done', name: '暮紫毕业',         desc: '拿满暮紫星球全部身份',    reward: 2000, ok: () => state.worldDone }
-      ],
-    },
-    {
-      name: '烈焰星球', emoji: '🔥', gate: 8000000, gain: 2.5,
-      resoNeed: [0, 1, 2, 3, 4, 5, 6],
-      ranks: [
-        { name: '火花', icon: '🔥', dust: 45000, rep: 0 },
-        { name: '熔炉工', icon: '⚒️', dust: 360000, rep: 15 },
-        { name: '烈焰骑士', icon: '🐉', dust: 1800000, rep: 65 },
-        { name: '火焰车神', icon: '🏎️', dust: 9000000, rep: 190 },
-        { name: '熔岩豪宅主', icon: '🏡', dust: 36000000, rep: 480 },
-        { name: '火山大亨', icon: '🌋', dust: 135000000, rep: 1120 },
-        { name: '烈焰之王', icon: '👑', dust: 360000000, rep: 3200 }
-      ],
-      upgrades: [
-        { id: 'l1', name: '熔岩指尖', desc: '每次点击 +40（本星球 ×2.5）', base: 9600, growth: 1.16, max: 200, kind: 'click', amount: 40 },
-        { id: 'l2', name: '火种无人机', desc: '每秒 +20 星尘', base: 72000, growth: 1.18, max: 200, kind: 'cps', amount: 20 },
-        { id: 'l3', name: '烈焰幸运符', desc: '暴击率 +3.5%', base: 32000, growth: 3, max: 8, kind: 'crit', amount: 0.035 },
-        { id: 'l4', name: '熔炉反应堆', desc: '每秒 +250 星尘', base: 240000, growth: 1.2, max: 200, kind: 'cps', amount: 250 },
-        { id: 'l5', name: '火山共鸣', desc: '全部产出 +12%', base: 720000, growth: 1.35, max: 40, kind: 'mult', amount: 0.12 },
-        { id: 'l6', name: '熔金收割机', desc: '每次点击 +220', base: 1600000, growth: 1.24, max: 200, kind: 'click', amount: 220 }
-      ],
-      assets: [
-        { id: 'a1', name: '熔岩摩托', icon: '🏍️', base: 12000, growth: 1.9, rep: 15 },
-        { id: 'a2', name: '火焰跑车', icon: '🏎️', base: 96000, growth: 1.9, rep: 40 },
-        { id: 'a3', name: '熔岩公寓', icon: '🏢', base: 480000, growth: 1.9, rep: 90 },
-        { id: 'a4', name: '火山飞机', icon: '✈️', base: 1600000, growth: 1.9, rep: 180 },
-        { id: 'a5', name: '岩浆别墅', icon: '🏡', base: 6400000, growth: 1.9, rep: 600 },
-        { id: 'a6', name: '火山宫殿', icon: '🏰', base: 32000000, growth: 1.9, rep: 2000 }
-      ],
-      achs: [
-        { id: 'arrive', name: '抵达烈焰',         desc: '跃迁到烈焰星球',    reward: 300, ok: () => state.world >= 1 },
-        { id: 'reso5', name: '共振熟练',         desc: '把星核共振推到 5 层',    reward: 2500, ok: () => state.reso >= 5 },
-        { id: 'reso10', name: '十次共振',         desc: '累计共振成功 10 次',    reward: 1200, ok: () => state.resoHits >= 10 },
-        { id: 'chain50', name: '连锁达人',         desc: '达成 50 连击',    reward: 1200, ok: () => state.comboBest >= 50 },
-        { id: 'done', name: '烈焰毕业',         desc: '拿满烈焰星球全部身份',    reward: 8000, ok: () => state.worldDone }
-      ],
-    },
-    {
-      name: '霜蓝星球', emoji: '❄️', gate: 40000000, gain: 6,
-      resoNeed: [0, 1, 2, 3, 5, 6],
-      ranks: [
-        { name: '冰晶', icon: '❄️', dust: 80000, rep: 0 },
-        { name: '雪原旅人', icon: '🧊', dust: 600000, rep: 10 },
-        { name: '寒霜骑士', icon: '🗡️', dust: 3200000, rep: 40 },
-        { name: '极光车手', icon: '🌌', dust: 16000000, rep: 125 },
-        { name: '冰宫主人', icon: '🏰', dust: 60000000, rep: 350 },
-        { name: '霜蓝女皇', icon: '👸', dust: 320000000, rep: 3000 }
-      ],
-      upgrades: [
-        { id: 'i1', name: '冰锥指尖', desc: '每次点击 +300（本星球 ×6）', base: 72000, growth: 1.16, max: 200, kind: 'click', amount: 300 },
-        { id: 'i2', name: '霜翼无人机', desc: '每秒 +150 星尘', base: 480000, growth: 1.18, max: 200, kind: 'cps', amount: 150 },
-        { id: 'i3', name: '极光幸运符', desc: '暴击率 +4.5%', base: 200000, growth: 3, max: 8, kind: 'crit', amount: 0.045 },
-        { id: 'i4', name: '冰核反应堆', desc: '每秒 +1800 星尘', base: 1600000, growth: 1.2, max: 200, kind: 'cps', amount: 1800 },
-        { id: 'i5', name: '极光共鸣', desc: '全部产出 +15%', base: 3200000, growth: 1.35, max: 40, kind: 'mult', amount: 0.15 },
-        { id: 'i6', name: '冰晶钻头', desc: '每次点击 +1500', base: 5600000, growth: 1.24, max: 200, kind: 'click', amount: 1500 },
-        { id: 'i7', name: '寒潮引擎', desc: '每秒 +12000 星尘', base: 20000000, growth: 1.2, max: 200, kind: 'cps', amount: 12000 },
-        { id: 'i8', name: '极光矩阵', desc: '全部产出 +25%', base: 72000000, growth: 1.4, max: 40, kind: 'mult', amount: 0.25 }
-      ],
-      assets: [
-        { id: 'b1', name: '冰原雪橇', icon: '🛷', base: 32000, growth: 1.9, rep: 20 },
-        { id: 'b2', name: '极光跑车', icon: '🚘', base: 320000, growth: 1.9, rep: 50 },
-        { id: 'b3', name: '冰晶公寓', icon: '🧊', base: 1600000, growth: 1.9, rep: 110 },
-        { id: 'b4', name: '霜翼飞机', icon: '🛩️', base: 6400000, growth: 1.9, rep: 250 },
-        { id: 'b5', name: '冰宫', icon: '🏰', base: 24000000, growth: 1.9, rep: 800 },
-        { id: 'b6', name: '极光城堡', icon: '🌌', base: 120000000, growth: 1.9, rep: 2500 }
-      ],
-      achs: [
-        { id: 'arrive', name: '抵达霜蓝',         desc: '跃迁到霜蓝星球',    reward: 1200, ok: () => state.world >= 2 },
-        { id: 'snow', name: '雪中漫步',         desc: '在雪天打开游戏',    reward: 1500, ok: () => /snow/.test(wx.kind) },
-        { id: 'rank3', name: '霜蓝上位',         desc: '本星球晋升 3 个身份',    reward: 4000, ok: () => state.rank >= 3 },
-        { id: 'reso30', name: '共振老兵',         desc: '累计共振成功 30 次',    reward: 12000, ok: () => state.resoHits >= 30 },
-        { id: 'done', name: '霜蓝毕业',         desc: '拿满霜蓝星球全部身份',    reward: 60000, ok: () => state.worldDone }
-      ],
-    },
-    {
-      name: '翡翠星球', emoji: '🌿', gate: 0, gain: 14,
-      resoNeed: [0, 1, 2, 4, 6, 8],
-      ranks: [
-        { name: '嫩芽', icon: '🌱', dust: 200000, rep: 0 },
-        { name: '林间行者', icon: '🍃', dust: 1600000, rep: 6 },
-        { name: '翡翠猎人', icon: '🏹', dust: 8000000, rep: 30 },
-        { name: '绿荫车主', icon: '🚙', dust: 40000000, rep: 85 },
-        { name: '树冠宫主', icon: '🌳', dust: 160000000, rep: 240 },
-        { name: '翡翠之王', icon: '💎', dust: 800000000, rep: 3000 }
-      ],
-      upgrades: [
-        { id: 'g1', name: '藤蔓指尖', desc: '每次点击 +2200（本星球 ×14）', base: 360000, growth: 1.16, max: 200, kind: 'click', amount: 2200 },
-        { id: 'g2', name: '叶脉无人机', desc: '每秒 +1200 星尘', base: 2400000, growth: 1.18, max: 200, kind: 'cps', amount: 1200 },
-        { id: 'g3', name: '生命幸运符', desc: '暴击率 +5%', base: 900000, growth: 3, max: 8, kind: 'crit', amount: 0.05 },
-        { id: 'g4', name: '生命树反应堆', desc: '每秒 +15000 星尘', base: 7200000, growth: 1.2, max: 200, kind: 'cps', amount: 15000 },
-        { id: 'g5', name: '翡翠共鸣', desc: '全部产出 +15%', base: 12000000, growth: 1.35, max: 40, kind: 'mult', amount: 0.15 },
-        { id: 'g6', name: '光合收割机', desc: '每次点击 +12000', base: 21000000, growth: 1.24, max: 200, kind: 'click', amount: 12000 },
-        { id: 'g7', name: '星尘藤网', desc: '每秒 +100000 星尘', base: 72000000, growth: 1.2, max: 200, kind: 'cps', amount: 100000 },
-        { id: 'g8', name: '翡翠矩阵', desc: '全部产出 +30%', base: 180000000, growth: 1.4, max: 40, kind: 'mult', amount: 0.3 },
-        { id: 'g9', name: '远古种子', desc: '每次点击 +80000', base: 270000000, growth: 1.28, max: 200, kind: 'click', amount: 80000 },
-        { id: 'g10', name: '世界树引擎', desc: '每秒 +900000 星尘', base: 720000000, growth: 1.2, max: 200, kind: 'cps', amount: 900000 }
-      ],
-      assets: [
-        { id: 'c1', name: '藤蔓滑板', icon: '🛹', base: 72000, growth: 1.9, rep: 25 },
-        { id: 'c2', name: '森林飞车', icon: '🚙', base: 900000, growth: 1.9, rep: 60 },
-        { id: 'c3', name: '树屋公寓', icon: '🌳', base: 4200000, growth: 1.9, rep: 140 },
-        { id: 'c4', name: '翡翠飞船', icon: '🛸', base: 15000000, growth: 1.9, rep: 320 },
-        { id: 'c5', name: '树冠圣殿', icon: '🏛️', base: 72000000, growth: 1.9, rep: 1000 },
-        { id: 'c6', name: '世界树宫殿', icon: '🌍', base: 360000000, growth: 1.9, rep: 3000 }
-      ],
-      achs: [
-        { id: 'arrive', name: '抵达翡翠',         desc: '跃迁到翡翠星球',    reward: 6000, ok: () => state.world >= 3 },
-        { id: 'chain100', name: '百连神话',         desc: '达成 100 连击',    reward: 30000, ok: () => state.comboBest >= 100 },
-        { id: 'reso60', name: '共振大师',         desc: '累计共振成功 60 次',    reward: 50000, ok: () => state.resoHits >= 60 },
-        { id: 'reso8', name: '八层满核',         desc: '把星核共振推到 8 层',    reward: 80000, ok: () => state.resoBest >= 8 },
-        { id: 'up30', name: '全面强化',         desc: '本星球升级总等级达到 30',    reward: 60000, ok: () => totalLevels() >= 30 },
-        { id: 'done', name: '翡翠毕业',         desc: '拿满翡翠星球全部身份',    reward: 300000, ok: () => state.worldDone }
-      ],
-    },
+  /* ===================== 1.5 星球数据 =====================
+     四颗星球 × 9 个身份 × 10 项升级。每颗星球的「收益倍率」和
+     「物价」一起翻倍，所以节奏一致，只换皮和绝对数字。
+     ======================================================= */
+
+  const RANK_SETS = [
+    [
+      { name: '拾尘者', icon: '🌫️' }, { name: '星尘学徒', icon: '🌱' }, { name: '街角名人', icon: '✨' },
+      { name: '有车一族', icon: '🚗' }, { name: '有房一族', icon: '🏠' }, { name: '星际商人', icon: '💼' },
+      { name: '星系名流', icon: '🌟' }, { name: '暮紫巨富', icon: '💎' }, { name: '星尘君王', icon: '👑' }
+    ],
+    [
+      { name: '火花', icon: '🔥' }, { name: '熔炉工', icon: '⚒️' }, { name: '烈焰骑士', icon: '🐉' },
+      { name: '火焰车神', icon: '🏎️' }, { name: '熔岩豪宅主', icon: '🏡' }, { name: '火山大亨', icon: '🌋' },
+      { name: '烈焰之王', icon: '👑' }, { name: '不灭薪王', icon: '♨️' }, { name: '太阳领主', icon: '☀️' }
+    ],
+    [
+      { name: '冰晶', icon: '❄️' }, { name: '雪原旅人', icon: '🧊' }, { name: '寒霜骑士', icon: '🗡️' },
+      { name: '极光车手', icon: '🌌' }, { name: '冰宫主人', icon: '🏰' }, { name: '霜蓝女皇', icon: '👸' },
+      { name: '永夜守望', icon: '🌑' }, { name: '极地星神', icon: '🧿' }, { name: '永冻之主', icon: '🪙' }
+    ],
+    [
+      { name: '孢子', icon: '🍃' }, { name: '林间行者', icon: '🚶' }, { name: '藤蔓术士', icon: '🌿' },
+      { name: '兽群之主', icon: '🐾' }, { name: '翡翠城主', icon: '🌳' }, { name: '生命贤者', icon: '🧙' },
+      { name: '世界树使', icon: '🌍' }, { name: '森罗万象', icon: '🪷' }, { name: '丛林星神', icon: '🐲' }
+    ]
   ];
+
+  const UP_NAMES = [
+    ['星尘手指', '采集无人机', '幸运符', '星核反应堆', '引力透镜', '共鸣棱镜', '反物质引擎', '星尘矩阵', '恒星熔炉', '奇点反应堆'],
+    ['熔岩指尖', '火种无人机', '烈焰幸运符', '熔炉反应堆', '岩浆透镜', '火山共鸣', '等离子引擎', '烈焰矩阵', '恒星锻炉', '超新星核心'],
+    ['冰锥指尖', '霜翼无人机', '极光幸运符', '冰核反应堆', '寒冰透镜', '极光共鸣', '零度引擎', '霜蓝矩阵', '寒潮熔炉', '绝对零度核心'],
+    ['藤蔓指尖', '叶脉无人机', '生命幸运符', '生命树反应堆', '光合透镜', '翡翠共鸣', '年轮引擎', '翡翠矩阵', '世界树熔炉', '创世种子']
+  ];
+
+  // 金额随星球倍率一起涨，收入也一起涨，节奏完全一致
+  const UP_TIERS = [
+    { kind: 'click', amount: 1,      base: 10,      growth: 1.16, max: 600 },
+    { kind: 'cps',   amount: 1,      base: 80,      growth: 1.17, max: 2500 },
+    { kind: 'crit',  amount: 0.03,   base: 900,     growth: 3.00, max: 8 },
+    { kind: 'cps',   amount: 12,     base: 4800,    growth: 1.18, max: 2500 },
+    { kind: 'cps',   amount: 144,    base: 288000,  growth: 1.19, max: 2500 },
+    { kind: 'mult',  amount: 0.15,   base: 8000,    growth: 1.42, max: 150 },
+    { kind: 'cps',   amount: 1728,   base: 1.7e7,   growth: 1.20, max: 2500 },
+    { kind: 'mult',  amount: 0.5,    base: 4e5,     growth: 1.48, max: 150 },
+    { kind: 'cps',   amount: 20736,  base: 1e9,     growth: 1.21, max: 2500 },
+    { kind: 'cps',   amount: 248832, base: 6e10,    growth: 1.22, max: 2500 }
+  ];
+
+  const ASSET_SETS = [
+    [
+      { name: '小汽车', icon: '🚗', rep: 10 }, { name: '跑车', icon: '🏎️', rep: 30 },
+      { name: '公寓', icon: '🏢', rep: 60 }, { name: '豪华跑车', icon: '🚙', rep: 120 },
+      { name: '别墅', icon: '🏡', rep: 400 }, { name: '星际豪宅', icon: '🛸', rep: 1500 },
+      { name: '私人空间站', icon: '🛰️', rep: 4000 }
+    ],
+    [
+      { name: '熔岩摩托', icon: '🏍️', rep: 10 }, { name: '火焰跑车', icon: '🏎️', rep: 30 },
+      { name: '熔岩公寓', icon: '🏢', rep: 60 }, { name: '火山飞机', icon: '✈️', rep: 120 },
+      { name: '岩浆别墅', icon: '🏡', rep: 400 }, { name: '火山宫殿', icon: '🏰', rep: 1500 },
+      { name: '恒星级熔炉', icon: '🌋', rep: 4000 }
+    ],
+    [
+      { name: '冰原雪橇', icon: '🛷', rep: 10 }, { name: '极光跑车', icon: '🚘', rep: 30 },
+      { name: '冰晶公寓', icon: '🧊', rep: 60 }, { name: '霜翼飞机', icon: '🛩️', rep: 120 },
+      { name: '冰宫', icon: '🏰', rep: 400 }, { name: '极光城堡', icon: '🌌', rep: 1500 },
+      { name: '永冻方舟', icon: '🚢', rep: 4000 }
+    ],
+    [
+      { name: '藤蔓滑板', icon: '🛹', rep: 10 }, { name: '森林飞车', icon: '🚙', rep: 30 },
+      { name: '树屋公寓', icon: '🌳', rep: 60 }, { name: '翡翠飞船', icon: '🛸', rep: 120 },
+      { name: '树冠圣殿', icon: '🏛️', rep: 400 }, { name: '世界树宫殿', icon: '🌍', rep: 1500 },
+      { name: '生命方舟', icon: '🌱', rep: 4000 }
+    ]
+  ];
+
+  const ASSET_BASE = [500, 5000, 20000, 60000, 250000, 1500000, 8000000];
+  const REP_NEED = [0, 20, 90, 300, 900, 2400, 6000, 14000, 30000];
+  const RESO_SETS = [
+    [0, 0, 1, 1, 2, 2, 3, 4, 5],
+    [0, 1, 1, 2, 2, 3, 4, 5, 6],
+    [0, 1, 2, 2, 3, 4, 5, 6, 7],
+    [0, 1, 2, 3, 3, 4, 5, 6, 8]
+  ];
+  // 舰队战力门槛：只有后三颗星球的后期身份需要
+  const FLEET_NEED = [
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 50, 150, 400],
+    [0, 0, 0, 0, 0, 300, 800, 1600, 3000],
+    [0, 0, 0, 0, 0, 900, 2500, 6000, 12000]
+  ];
+  // 星章门槛：小游戏打出来的
+  const BADGE_NEED = [
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 2, 3, 4],
+    [0, 0, 0, 0, 0, 3, 5, 8, 12]
+  ];
+
+  const WORLD_META = [
+    { name: '暮紫星球', emoji: '🪐', gain: 1 },
+    { name: '烈焰星球', emoji: '🔥', gain: 4 },
+    { name: '霜蓝星球', emoji: '❄️', gain: 16 },
+    { name: '翡翠星球', emoji: '🌿', gain: 64 }
+  ];
+
+  // 第 i 个身份要的累计星尘：500 × 28^i × 星球倍率
+  // 28 这个比例配合晋升的 ×1.6 点击倍率，一颗星球大约 11 小时（模拟值）
+  const DUST_NEED = (i, gain) => Math.round(500 * Math.pow(28, i) * gain);
+
+  function upDesc(t, gain) {
+    if (t.kind === 'click') return '每次点击 +' + t.amount + '（本星球收益 ×' + gain + '）';
+    if (t.kind === 'cps') return '每秒 +' + t.amount + ' 星尘（再乘本星球倍率）';
+    if (t.kind === 'crit') return '暴击率 +' + Math.round(t.amount * 100) + '%（×3 收益）';
+    return '全部产出 +' + Math.round(t.amount * 100) + '%';
+  }
+
+  // 成就模板：每颗星球一套，尽量覆盖各个玩法
+  function makeAchs(wi, gain) {
+    const base = [
+      { id: 'start', name: '落脚', desc: wi === 0 ? '第一次点星球' : '跃迁到' + WORLD_META[wi].name,
+        reward: 50 * Math.pow(10, wi), ok: () => state.world >= wi || state.wclicks > 0 }
+    ];
+    base.push(
+      { id: 'chain', name: '手感渐热', desc: '达成 ' + (25 * (wi + 1)) + ' 连击',
+        reward: 120 * Math.pow(10, wi), ok: () => state.comboBest >= 25 * (wi + 1) },
+      { id: 'reso', name: '共振入门', desc: '把星核共振推到 ' + (3 + wi) + ' 层',
+        reward: 300 * Math.pow(10, wi), ok: () => state.reso >= 3 + wi || state.resoBest >= 3 + wi },
+      { id: 'mini', name: '会玩小游戏', desc: '小游戏累计胜利 3 次',
+        reward: 500 * Math.pow(10, wi), ok: () => state.mini.wins >= 3 },
+      { id: 'stock', name: '第一桶金', desc: '股票持仓市值达到 ' + fmt(1e5 * gain) + ' 星尘',
+        reward: 800 * Math.pow(10, wi), ok: () => window.DDSystems && DDSystems.capital() >= 1e5 * gain },
+      { id: 'fleet', name: '舰队出航', desc: '完成 3 次远征',
+        reward: 1200 * Math.pow(10, wi), ok: () => state.fleet.done >= 3 },
+      { id: 'done', name: '星球毕业', desc: '拿满本星球全部身份',
+        reward: 5000 * Math.pow(10, wi), ok: () => state.worldDone }
+    );
+    return base;
+  }
+
+  const WORLDS = WORLD_META.map((meta, wi) => {
+    const gain = meta.gain;
+    const ranks = RANK_SETS[wi].map((r, i) => ({
+      name: r.name,
+      icon: r.icon,
+      dust: DUST_NEED(i, gain),
+      rep: REP_NEED[i],
+      cap: i >= 5 && wi > 0 ? Math.round(DUST_NEED(i, gain) * 0.02) : 0,
+      fleet: FLEET_NEED[wi][i],
+      badge: BADGE_NEED[wi][i]
+    }));
+    const upgrades = UP_TIERS.map((t, k) => ({
+      id: 'u' + k,
+      name: UP_NAMES[wi][k],
+      desc: upDesc(t, gain),
+      base: Math.round(t.base * gain),
+      growth: t.growth,
+      max: t.max,
+      kind: t.kind,
+      amount: t.amount
+    }));
+    const assets = ASSET_SETS[wi].map((a, k) => ({
+      id: 'a' + k,
+      name: a.name,
+      icon: a.icon,
+      base: Math.round(ASSET_BASE[k] * gain),
+      growth: 1.9,
+      rep: a.rep
+    }));
+    return {
+      name: meta.name,
+      emoji: meta.emoji,
+      gain: gain,
+      gate: Math.round(DUST_NEED(8, gain) * 0.25),
+      resoNeed: RESO_SETS[wi],
+      ranks: ranks,
+      upgrades: upgrades,
+      assets: assets,
+      achs: makeAchs(wi, gain)
+    };
+  });
 
   // 全局成就：跨星球只解锁一次
   const GLOBAL_ACHS = [
-    { id: 'g_world2', name: '第二颗星球', desc: '跃迁到第二颗星球',              reward: 5000,    ok: () => state.world >= 1 },
+    { id: 'g_world2', name: '第二颗星球', desc: '跃迁到第二颗星球',              reward: 50000,   ok: () => state.world >= 1 },
     { id: 'g_rain',   name: '雨中漫步',   desc: '在雨天打开游戏',                reward: 300,     ok: () => /rain|drizzle|thunder|shower/.test(wx.kind) },
     { id: 'g_night',  name: '夜观星象',   desc: '在夜里打开游戏',                reward: 300,     ok: () => SceneKit.timeInfo().phase === 'night' },
     { id: 'g_c5000',  name: '手指发烫',   desc: '累计点击 5000 次',              reward: 2000,    ok: () => state.clicks >= 5000 },
     { id: 'g_combo',  name: '连锁狂人',   desc: '任意一次达成 100 连击',         reward: 10000,   ok: () => state.comboBest >= 100 },
     { id: 'g_reso',   name: '共振老手',   desc: '累计共振成功 50 次',            reward: 20000,   ok: () => state.resoHits >= 50 },
-    { id: 'g_clear',  name: '全剧终',     desc: '通关全部四颗星球',              reward: 1000000, ok: () => state.cleared },
+    { id: 'g_trade',  name: '职业股民',   desc: '股市累计成交 200 笔',           reward: 200000,  ok: () => state.stats && state.stats.trades >= 200 },
+    { id: 'g_cap',    name: '资本玩家',   desc: '股票持仓市值达到 1 亿',         reward: 800000,  ok: () => window.DDSystems && DDSystems.capital() >= 1e8 },
+    { id: 'g_exp',    name: '远征队',     desc: '完成 20 次舰队远征',            reward: 300000,  ok: () => state.fleet && state.fleet.done >= 20 },
+    { id: 'g_badge',  name: '星章收藏家', desc: '拿到 10 枚星章',                reward: 500000,  ok: () => state.mini && state.mini.badges >= 10 },
+    { id: 'g_mini',   name: '小游戏高手', desc: '小游戏累计胜利 30 次',          reward: 400000,  ok: () => state.mini && state.mini.wins >= 30 },
+    { id: 'g_idle',   name: '挂机也是玩', desc: '离线挂机累计收入 1 亿',         reward: 200000,  ok: () => state.stats && state.stats.idleDust >= 1e8 },
+    { id: 'g_clear',  name: '全剧终',     desc: '通关全部四颗星球',              reward: 50000000, ok: () => state.cleared },
   ];
 
   // 天气城市（手动选择；默认用网络 IP 自动定位）
@@ -238,6 +275,13 @@
     resoHits: 0,      // 累计共振成功次数
     resoMiss: 0,      // 累计失误
     resoLastAt: 0,    // 上次共振时间（衰减用）
+
+    // ===== 跨星球保留的四大系统 =====
+    mini: { energy: 8, energyAt: Date.now(), wins: 0, plays: 0, badges: 0, best: {} },
+    stocks: { hold: {}, prices: {}, news: [], newsAt: 0, divAt: 0, profit: 0 },
+    fleet: { ships: {}, exps: [null, null, null], done: 0 },
+    idle: { core: 0, auto: 0, report: null },
+    stats: { trades: 0, exps: 0, miniDust: 0, stockProfit: 0, idleDust: 0 }
   });
 
   let state = newState();
@@ -277,6 +321,25 @@
   const W = () => WORLDS[state.world];
   const isLastWorld = () => state.world >= WORLDS.length - 1;
 
+  // 新系统都放在 systems.js 里，这里只取结果；没加载时当作 0
+  const SYS = () => window.DDSystems;
+  const sysMult = () => (SYS() && SYS().mult ? SYS().mult() : 1);
+  const capital = () => (SYS() && SYS().capital ? SYS().capital() : 0);
+  const fleetPower = () => (SYS() && SYS().fleetPower ? SYS().fleetPower() : 0);
+  const badges = () => (state.mini ? state.mini.badges : 0);
+
+  function rankReqOK(i) {
+    const r = W().ranks[i];
+    if (!r) return false;
+    if (state.total < r.dust) return false;
+    if (totalRep() < r.rep) return false;
+    if (state.reso < ((W().resoNeed || [])[i] || 0)) return false;
+    if (r.cap && capital() < r.cap) return false;
+    if (r.fleet && fleetPower() < r.fleet) return false;
+    if (r.badge && badges() < r.badge) return false;
+    return true;
+  }
+
   function sumUp(kind) {
     let s = 0;
     const list = W().upgrades;
@@ -299,11 +362,11 @@
 
   const clickPower = () =>
     (1 + sumUp('click')) * (1 + sumUp('mult')) * W().gain *
-    Math.pow(1.6, state.rank) * resoMult();
+    Math.pow(1.6, state.rank) * resoMult() * sysMult();
 
   const cps = () =>
     sumUp('cps') * (1 + sumUp('mult')) * W().gain *
-    (1 + state.rank * 0.35) * resoMult();
+    (1 + state.rank * 0.35) * resoMult() * sysMult();
 
   const critChance = () => Math.min(CRIT_CAP, sumUp('crit'));
 
@@ -370,12 +433,8 @@
   // 存档里的身份是「已经拿到」的下限；补齐只会往上补，不会因为共振掉了而倒退
   function recountRank(floor) {
     const ranks = W().ranks;
-    const need = W().resoNeed || [];
     let r = 0;
-    while (r < ranks.length && state.total >= ranks[r].dust && totalRep() >= ranks[r].rep &&
-           state.reso >= (need[r] || 0)) {
-      r += 1;
-    }
+    while (r < ranks.length && rankReqOK(r)) r += 1;
     state.rank = clamp(Math.max(r, floor || 0), 0, ranks.length);
     state.worldDone = state.rank >= ranks.length;
   }
@@ -413,6 +472,20 @@
         resoLastAt: num(d.resoLastAt) || Date.now(),
       });
 
+      // 新系统：整块合并，旧存档缺字段就用默认值
+      state.mini = Object.assign(base.mini, d.mini || {});
+      state.mini.best = Object.assign({}, (d.mini && d.mini.best) || {});
+      state.stocks = Object.assign(base.stocks, d.stocks || {});
+      state.stocks.hold = Object.assign({}, (d.stocks && d.stocks.hold) || {});
+      state.stocks.prices = Object.assign({}, (d.stocks && d.stocks.prices) || {});
+      state.stocks.news = Array.isArray(d.stocks && d.stocks.news) ? d.stocks.news : [];
+      state.fleet = Object.assign(base.fleet, d.fleet || {});
+      state.fleet.ships = Object.assign({}, (d.fleet && d.fleet.ships) || {});
+      state.fleet.exps = Array.isArray(d.fleet && d.fleet.exps) ? d.fleet.exps : [null, null, null];
+      while (state.fleet.exps.length < 3) state.fleet.exps.push(null);
+      state.idle = Object.assign(base.idle, d.idle || {});
+      state.stats = Object.assign(base.stats, d.stats || {});
+
       // 只保留本星球仍然存在的升级/资产 id
       state.levels = {};
       W().upgrades.forEach((u) => { if (d.levels && d.levels[u.id]) state.levels[u.id] = num(d.levels[u.id]); });
@@ -424,10 +497,14 @@
       // 离线收益
       const away = Date.now() - state.lastSave;
       if (away > RESO_DECAY_MS) { state.reso = 0; state.resoLastAt = Date.now(); }
-      const gain = cps() * Math.min(away, OFFLINE_CAP_MS) / 1000;
-      if (away > 30000 && gain >= 1) {
+      // 挂机效率：基础 55%，自动采集核心每级 +2.5%，最高 100%
+      const idleRate = Math.min(1, 0.55 + state.idle.core * 0.025);
+      const gain = cps() * Math.min(away, OFFLINE_CAP_MS) / 1000 * idleRate;
+      if (away > 60000 && gain >= 1) {
         state.dust += gain;
         state.total += gain;
+        state.stats.idleDust += gain;
+        state.idle.report = { away: away, gain: gain, rate: idleRate };
         flashTip('离线 ' + fmtDuration(away) + '，收入 +' + fmt(gain), 4000);
       }
     } catch (e) {
@@ -705,15 +782,20 @@
     up: $('panel-up'),
     asset: $('panel-asset'),
     rank: $('panel-rank'),
+    stock: $('panel-stock'),
+    fleet: $('panel-fleet'),
+    play: $('panel-play'),
   };
 
-  tabs.forEach((t) => {
-    t.addEventListener('click', () => {
-      tabs.forEach((x) => x.classList.toggle('active', x === t));
-      Object.keys(panels).forEach((k) => {
-        panels[k].classList.toggle('active', k === t.dataset.tab);
-      });
+  function switchTab(name) {
+    tabs.forEach((x) => x.classList.toggle('active', x.dataset.tab === name));
+    Object.keys(panels).forEach((k) => {
+      if (panels[k]) panels[k].classList.toggle('active', k === name);
     });
+  }
+
+  tabs.forEach((t) => {
+    t.addEventListener('click', () => switchTab(t.dataset.tab));
   });
 
   /* ===================== 7. 列表 / 图鉴 / 预览 ===================== */
@@ -778,7 +860,10 @@
         '<div class="item-main">' +
           '<div class="rank-name">' + r.name + '</div>' +
           '<div class="rank-req">累计星尘 ' + fmt(r.dust) + ' · 声望 ' + fmt(r.rep) +
-            ((W().resoNeed && W().resoNeed[i]) ? ' · 共振 ' + W().resoNeed[i] + ' 层' : '') + '</div>' +
+            ((W().resoNeed && W().resoNeed[i]) ? ' · 共振 ' + W().resoNeed[i] + ' 层' : '') +
+            (r.cap ? ' · 市值 ' + fmt(r.cap) : '') +
+            (r.fleet ? ' · 舰队 ' + fmt(r.fleet) : '') +
+            (r.badge ? ' · 星章 ' + r.badge : '') + '</div>' +
         '</div>' +
         '<span class="rank-badge">未达成</span>';
 
@@ -947,7 +1032,7 @@
 
     while (state.rank < ranks.length) {
       const r = ranks[state.rank];
-      if (state.total >= r.dust && totalRep() >= r.rep && state.reso >= resoNeedFor(state.rank)) {
+      if (rankReqOK(state.rank)) {
         state.rank += 1;
         state.dust *= 2;
         promoted = r;
@@ -961,7 +1046,7 @@
     save();
     scene.kickIt();
     spawnConfetti(36);
-    toast('🎖 晋升「' + promoted.name + '」· 星尘翻倍，点击力 ×2', 2600);
+    toast('🎖 晋升「' + promoted.name + '」· 星尘翻倍，点击力 ×1.6', 2600);
 
     if (state.rank >= ranks.length && !state.worldDone) {
       state.worldDone = true;
@@ -1055,7 +1140,7 @@
     el.clearStats.innerHTML =
       '<div><b>' + WORLDS.length + '</b>星球</div>' +
       '<div><b>' + fmt(state.clicks) + '</b>总点击</div>' +
-      '<div><b>' + fmt(state.trades) + '</b>交易</div>' +
+      '<div><b>' + fmt(state.stats.trades) + '</b>交易</div>' +
       '<div><b>' + mins + ' 分钟</b>用时</div>';
 
     spawnConfetti(90);
@@ -1243,11 +1328,15 @@
     const next = ranks[state.rank];
     if (next) {
       const needReso = resoNeedFor(state.rank);
+      const bits = [];
+      bits.push('还要 ' + fmt(Math.max(0, next.dust - state.total)) + ' 星尘');
+      if (next.rep > rep) bits.push('声望 ' + fmt(next.rep - rep));
+      if (needReso > 0) bits.push('共振 ' + Math.min(state.reso, needReso) + '/' + needReso);
+      if (next.cap) bits.push('市值 ' + fmt(capital()) + '/' + fmt(next.cap));
+      if (next.fleet) bits.push('舰队 ' + fmt(fleetPower()) + '/' + fmt(next.fleet));
+      if (next.badge) bits.push('星章 ' + badges() + '/' + next.badge);
       el.rankNext.textContent =
-        (state.rank === 0 ? '首个身份 ' : '下一站 ') + next.name +
-        '：还要 ' + fmt(Math.max(0, next.dust - state.total)) + ' 星尘 · ' +
-        fmt(Math.max(0, next.rep - rep)) + ' 声望' +
-        (needReso > 0 ? ' · 共振 ' + Math.min(state.reso, needReso) + '/' + needReso + ' 层' : '');
+        (state.rank === 0 ? '首个身份 ' : '下一站 ') + next.name + '：' + bits.join(' · ');
     } else {
       el.rankNext.textContent = state.worldDone ? '本星球身份已全满' : '…';
     }
@@ -1476,6 +1565,7 @@
 
     if (combo > 0 && performance.now() - comboAt > CHAIN_WINDOW) comboBreak();
     resoTick();
+    if (window.DDSystems) window.DDSystems.tick(100);
     render();
   }, 100);
 
@@ -1492,4 +1582,27 @@
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) save();
   });
+
+  /* ===================== 14. 给扩展系统用的接口 ===================== */
+  window.DD = {
+    get state() { return state; },
+    worlds: WORLDS,
+    fmt: fmt,
+    toast: toast,
+    save: save,
+    render: render,
+    checkRanks: checkRanks,
+    checkAchs: checkAchs,
+    refreshRank: function () { recountRank(); checkRanks(); render(); },
+    switchTab: switchTab,
+    addDust: function (n) {
+      if (!(n > 0)) return;
+      state.dust += n; state.total += n;
+      render();
+    },
+    get cps() { return cps(); },
+    get clickPower() { return clickPower(); },
+    get rep() { return totalRep(); }
+  };
+  if (window.DDSystems) window.DDSystems.attach();
 })();

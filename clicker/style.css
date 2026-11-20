@@ -1245,3 +1245,246 @@ body[data-world="3"] {
 .reso-btn:active { transform: scale(.985); border-color: rgba(216, 178, 90, .6); }
 .reso-btn:disabled { opacity: .45; }
 .reso-hint { font-size: 11px; color: #8b7e6b; white-space: nowrap; }
+
+/* ============================================================
+   扩展系统：股市 / 舰队 / 小游戏 / 挂机
+   ============================================================ */
+
+.sys-head {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.sys-head > div {
+  flex: 1;
+  min-width: 0;
+  background: rgba(255, 255, 255, .045);
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 13px;
+  padding: 9px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sys-head b {
+  font-size: 16px;
+  color: var(--acc2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sys-head span { font-size: 10.5px; color: #a2937c; }
+
+/* ===== 股市 ===== */
+.stock-list, .news-list, .exp-list, .mini-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.stock-item {
+  background: rgba(255, 255, 255, .04);
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 14px;
+  padding: 10px 12px;
+}
+
+.stock-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.stock-name { font-size: 14px; font-weight: 600; }
+.stock-name em {
+  font-style: normal;
+  font-size: 10px;
+  letter-spacing: .5px;
+  color: #a2937c;
+  margin-left: 6px;
+}
+.stock-price { font-size: 14px; font-variant-numeric: tabular-nums; color: #efe3cb; }
+.stock-price em {
+  font-style: normal;
+  font-size: 11px;
+  margin-left: 6px;
+}
+.stock-price .up, .news-item .up { color: #a8b87b; }
+.stock-price .down, .news-item .down { color: #c07a4b; }
+.stock-sub { font-size: 11px; color: #a2937c; margin-top: 3px; }
+
+.stock-ops { display: flex; gap: 5px; margin-top: 8px; }
+.stock-ops button {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--acc-soft);
+  background: rgba(255, 255, 255, .03);
+  color: var(--acc2);
+  border-radius: 9px;
+  padding: 6px 2px;
+  font-size: 11px;
+  cursor: pointer;
+}
+.stock-ops button:active { background: var(--acc-soft); }
+
+.news-item {
+  display: flex;
+  gap: 7px;
+  align-items: flex-start;
+  font-size: 12px;
+  color: #cbbda6;
+  line-height: 1.5;
+  background: rgba(255, 255, 255, .03);
+  border-radius: 10px;
+  padding: 7px 10px;
+}
+.news-item i { font-style: normal; font-weight: 700; }
+.news-item.dim { color: #7d7263; }
+
+/* ===== 舰队 ===== */
+.exp-item {
+  background: rgba(255, 255, 255, .04);
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 14px;
+  padding: 10px 12px;
+}
+.exp-title {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.exp-title em { font-style: normal; font-size: 11px; color: var(--gold); font-variant-numeric: tabular-nums; }
+.exp-reward { font-size: 11px; color: #a2937c; margin-top: 3px; }
+.exp-ops { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.exp-ops button, .exp-claim {
+  flex: 1;
+  min-width: 96px;
+  border: 1px solid var(--acc-soft);
+  background: rgba(255, 255, 255, .03);
+  color: var(--acc2);
+  border-radius: 9px;
+  padding: 7px 4px;
+  font-size: 11.5px;
+  cursor: pointer;
+}
+.exp-claim { width: 100%; margin-top: 8px; }
+.exp-claim:not(:disabled) { background: var(--acc-soft); color: #f6ecda; font-weight: 600; }
+button:disabled { opacity: .4; }
+
+/* ===== 小游戏 ===== */
+.mini-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, .04);
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 14px;
+  padding: 10px 12px;
+}
+.mini-ico { font-size: 22px; }
+.mini-card .item-main { flex: 1; min-width: 0; }
+.mini-go {
+  border: 1px solid var(--acc-soft);
+  background: var(--acc-soft);
+  color: #f6ecda;
+  border-radius: 10px;
+  padding: 8px 13px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  flex: none;
+}
+
+.mini-box { max-width: 360px; }
+.mini-body { margin: 10px 0; }
+.mini-result { text-align: center; font-size: 12.5px; color: var(--gold); margin: 10px 0; }
+.mini-btn { width: 100%; margin-top: 10px; }
+.mini-foot { display: flex; justify-content: flex-end; }
+
+.ore-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+}
+.ore-cell {
+  aspect-ratio: 1;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, .1);
+  background: rgba(255, 255, 255, .04);
+  color: #a2937c;
+  font-size: 22px;
+  cursor: pointer;
+  transition: background .15s ease, transform .12s ease;
+}
+.ore-cell:active { transform: scale(.96); }
+.ore-cell.hit { background: rgba(168, 184, 123, .28); border-color: #a8b87b; }
+.ore-cell.miss { opacity: .45; }
+.ore-cell.show { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; }
+.ore-cell.lit { background: var(--acc-soft); border-color: var(--acc2); }
+.ore-cell.mem { font-size: 15px; }
+
+.meteor-track {
+  position: relative;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .05);
+  border: 1px solid rgba(255, 255, 255, .09);
+  overflow: hidden;
+}
+.meteor-zone {
+  position: absolute;
+  left: 34%;
+  width: 32%;
+  top: 0;
+  bottom: 0;
+  background: rgba(168, 184, 123, .22);
+  border-left: 1px solid rgba(168, 184, 123, .5);
+  border-right: 1px solid rgba(168, 184, 123, .5);
+}
+.meteor-marker {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  width: 3px;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background: var(--gold);
+  box-shadow: 0 0 8px var(--gold);
+}
+
+/* ===== 挂机 ===== */
+.idle-card {
+  background: rgba(255, 255, 255, .04);
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 14px;
+  padding: 11px 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.idle-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12.5px;
+  color: #b6a990;
+}
+.idle-row b { color: var(--acc2); font-variant-numeric: tabular-nums; }
+.idle-ops { display: flex; gap: 6px; margin-top: 4px; }
+.idle-ops button {
+  flex: 1;
+  border: 1px solid var(--acc-soft);
+  background: rgba(255, 255, 255, .03);
+  color: var(--acc2);
+  border-radius: 9px;
+  padding: 7px 4px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+@media (max-width: 380px) {
+  .tab { font-size: 12px; padding: 7px 3px; }
+  .sys-head b { font-size: 14px; }
+}
