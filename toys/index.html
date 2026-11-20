@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080c14">
+<title>小玩意儿 · aiweb/toys</title>
+<style>
+  :root{
+    --bg:#080c14; --card:rgba(255,255,255,.04); --line:rgba(255,255,255,.09);
+    --text:#e9eefa; --muted:#8492a8; --accent:#4fe3c1;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;min-height:100%}
+  body{
+    background:
+      radial-gradient(800px 420px at 15% -8%,#16324f 0%,transparent 62%),
+      radial-gradient(700px 420px at 95% 8%,#2a1a3d 0%,transparent 60%),
+      var(--bg);
+    color:var(--text);font-family:"Noto Sans SC","PingFang SC",system-ui,sans-serif;
+    padding:calc(26px + env(safe-area-inset-top)) 18px calc(30px + env(safe-area-inset-bottom));
+    min-height:100vh;display:flex;flex-direction:column;gap:22px
+  }
+  .head h1{margin:0 0 6px;font-size:22px;letter-spacing:.04em}
+  .head p{margin:0;font-size:13px;color:var(--muted);letter-spacing:.06em}
+  .grid{display:flex;flex-direction:column;gap:12px}
+  a.card{
+    display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit;
+    background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;
+    transition:transform .12s,border-color .2s,background .2s
+  }
+  a.card:active{transform:scale(.98);background:rgba(255,255,255,.07)}
+  .ico{
+    width:46px;height:46px;flex:none;border-radius:13px;display:grid;place-items:center;font-size:22px;
+    background:linear-gradient(160deg,rgba(79,227,193,.16),rgba(106,168,255,.1));
+    border:1px solid rgba(79,227,193,.18)
+  }
+  .txt{flex:1;min-width:0}
+  .txt b{display:block;font-size:15.5px;font-weight:600;letter-spacing:.02em}
+  .txt span{display:block;font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.5}
+  .arrow{color:#445268;font-size:18px}
+  .foot{margin-top:auto;font-size:11.5px;color:#43506a;letter-spacing:.08em;line-height:1.8}
+  .foot code{color:#5d6f8c;font-family:ui-monospace,monospace}
+</style>
+</head>
+<body>
+  <header class="head">
+    <h1>小玩意儿</h1>
+    <p>四个单文件页面，不联网也能跑</p>
+  </header>
+
+  <nav class="grid">
+    <a class="card" href="starfield.html">
+      <div class="ico">✦</div>
+      <div class="txt"><b>星空 · 指尖引力</b><span>按住屏幕，星星朝指尖聚拢打旋</span></div>
+      <div class="arrow">›</div>
+    </a>
+    <a class="card" href="morse.html">
+      <div class="ico">·−</div>
+      <div class="txt"><b>摩尔斯电报机</b><span>短按出点、长按出划，自动解成字</span></div>
+      <div class="arrow">›</div>
+    </a>
+    <a class="card" href="colors.html">
+      <div class="ico">◐</div>
+      <div class="txt"><b>随机配色卡</b><span>一键生成五色，点一下复制色值</span></div>
+      <div class="arrow">›</div>
+    </a>
+    <a class="card" href="clock.html">
+      <div class="ico">◷</div>
+      <div class="txt"><b>今天去哪了</b><span>大号时钟 + 今天和今年的进度条</span></div>
+      <div class="arrow">›</div>
+    </a>
+  </nav>
+
+  <footer class="foot">
+    文件都在 <code>/sdcard/aiweb/toys/</code>，MT 管理器里直接点开就能看。<br>
+    加 <code>?v=</code> 后面随便写点东西可以绕过旧缓存。
+  </footer>
+</body>
+</html>
