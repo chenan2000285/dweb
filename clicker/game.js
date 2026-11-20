@@ -1067,7 +1067,7 @@
   // 按住蓄力：指示条在 0~1 之间来回跑，松手时落在绿区就算成功
   const reso = { charging: false, p: 0, dir: 1, zoneAt: 0.5, zoneW: 0.26, last: 0, coolUntil: 0, raf: 0 };
 
-  const resoZoneWidth = () => Math.max(0.09, 0.28 - state.reso * 0.022);
+  const resoZoneWidth = () => Math.max(0.11, 0.30 - state.reso * 0.018);
   const resoNeedFor = (rank) => (W().resoNeed && W().resoNeed[rank]) || 0;
 
   function resoDraw() {
