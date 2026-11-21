@@ -39,7 +39,7 @@
 
   function gain() { return D().worlds[S().world].gain; }
 
-  // 局部重绘（股市/舰队/小游戏三块）
+  // 局部重绘（股市 / 宠物 / 小游戏）
   function render() {
     renderStocks();
     renderFleet();
@@ -194,126 +194,19 @@
     }
   }
 
-  /* ===================== 舰队 ===================== */
+  /* ===================== 探索 / 宠物 ===================== */
+  // 舰队已经换成宠物：探索、战力、加成都在 pets.js 里，
+  // 这里只保留给主循环和身份判定用的转发。
 
-  var SHIPS = [
-    { id: 'f1', name: '侦察艇', icon: '🛰️', power: 10,  base: 2000,   growth: 1.55 },
-    { id: 'f2', name: '护卫舰', icon: '🚀', power: 45,  base: 15000,  growth: 1.55 },
-    { id: 'f3', name: '巡洋舰', icon: '🛸', power: 200, base: 120000, growth: 1.55 },
-    { id: 'f4', name: '母舰',   icon: '🌌', power: 900, base: 900000, growth: 1.60 }
-  ];
-
-  var DESTS = [
-    { id: 'd1', name: '近地小行星', min: 5,  need: 0,   rate: 14 },
-    { id: 'd2', name: '深空航道',   min: 20, need: 100, rate: 20 },
-    { id: 'd3', name: '虫洞边缘',   min: 60, need: 600, rate: 28 }
-  ];
-
-  function fleetPower() {
-    var st = S();
-    if (!st) return 0;
-    var p = 0;
-    for (var i = 0; i < SHIPS.length; i++) p += (st.fleet.ships[SHIPS[i].id] || 0) * SHIPS[i].power;
-    return p * (1 + Math.min(0.5, st.fleet.done * 0.005));
-  }
-
-  function fleetMult() { return 1 + Math.log10(1 + fleetPower()) * 0.45; }
-
-  function shipCost(s) {
-    var lv = S().fleet.ships[s.id] || 0;
-    return Math.round(s.base * gain() * Math.pow(s.growth, lv));
-  }
-
-  function buyShip(s) {
-    var cost = shipCost(s);
-    if (S().dust < cost) { D().toast('星尘不够', 1400); return; }
-    S().dust -= cost;
-    S().fleet.ships[s.id] = (S().fleet.ships[s.id] || 0) + 1;
-    D().checkAchs();
-    D().checkRanks();
-    render();
-    D().save();
-  }
-
-  function launch(slot, dest) {
-    if (fleetPower() < dest.need) { D().toast('战力不够，先去船坞买船', 1600); return; }
-    var secs = dest.min * 60;
-    var reward = D().cps * secs * dest.rate + 200 * gain();
-    S().fleet.exps[slot] = {
-      dest: dest.id, name: dest.name, endsAt: Date.now() + secs * 1000,
-      reward: reward, startedAt: Date.now()
-    };
-    D().toast('🛰️ 远征队出发：' + dest.name + '（' + dest.min + ' 分钟）', 2200);
-    render();
-    D().save();
-  }
-
-  function claim(slot) {
-    var e = S().fleet.exps[slot];
-    if (!e || Date.now() < e.endsAt) return;
-    S().fleet.exps[slot] = null;
-    S().fleet.done += 1;
-    S().stats.exps += 1;
-    D().addDust(e.reward);
-    D().toast('🎁 远征归来 +' + D().fmt(e.reward) + ' 星尘', 2400);
-    D().checkAchs();
-    D().checkRanks();
-    render();
-    D().save();
-  }
+  function petPower() { return window.DDPets ? DDPets.petPower() : 0; }
+  function petMult() { return window.DDPets ? DDPets.petMult() : 1; }
 
   function renderFleet() {
-    $('fltPower').textContent = D().fmt(fleetPower());
-    $('fltMult').textContent = '×' + fleetMult().toFixed(2);
-    $('fltDone').textContent = D().fmt(S().fleet.done);
-
-    var wrap = $('expSlots');
-    if (wrap) {
-      wrap.innerHTML = '';
-      S().fleet.exps.forEach(function (e, i) {
-        var li = document.createElement('li');
-        li.className = 'exp-item';
-        if (!e) {
-          li.innerHTML = '<div class="exp-title">空泊位 ' + (i + 1) + '</div>' +
-            '<div class="exp-ops">' + DESTS.map(function (d, k) {
-              return '<button type="button" data-slot="' + i + '" data-d="' + k + '"' +
-                (fleetPower() < d.need ? ' disabled' : '') + '>' + d.name + ' · ' + d.min + '分</button>';
-            }).join('') + '</div>';
-        } else {
-          var left = e.endsAt - Date.now();
-          var ready = left <= 0;
-          li.innerHTML = '<div class="exp-title">' + e.name +
-            '<em>' + (ready ? '已归来' : '剩余 ' + fmtLeft(left)) + '</em></div>' +
-            '<div class="exp-reward">预计带回 ' + D().fmt(e.reward) + ' 星尘</div>' +
-            '<button type="button" class="exp-claim" data-claim="' + i + '"' +
-            (ready ? '' : ' disabled') + '>' + (ready ? '领取' : '航行中') + '</button>';
-        }
-        li.querySelectorAll('[data-d]').forEach(function (b) {
-          b.addEventListener('click', function () { launch(Number(b.dataset.slot), DESTS[Number(b.dataset.d)]); });
-        });
-        var c = li.querySelector('[data-claim]');
-        if (c) c.addEventListener('click', function () { claim(Number(c.dataset.claim)); });
-        wrap.appendChild(li);
-      });
-    }
-
-    var list = $('shipList');
-    if (list) {
-      list.innerHTML = '';
-      SHIPS.forEach(function (s) {
-        var lv = S().fleet.ships[s.id] || 0;
-        var cost = shipCost(s);
-        var li = document.createElement('li');
-        li.className = 'item';
-        li.innerHTML =
-          '<div class="item-main"><div class="item-name">' + s.icon + ' ' + s.name +
-            '</div><div class="item-desc">战力 +' + s.power + ' · 已有 ' + lv + '</div></div>' +
-          '<div class="item-side"><button type="button" class="buy"' +
-            (S().dust < cost ? ' disabled' : '') + '>' + D().fmt(cost) + '</button></div>';
-        li.querySelector('button').addEventListener('click', function () { buyShip(s); });
-        list.appendChild(li);
-      });
-    }
+    var st = S();
+    if (!st || !st.pets) return;
+    $('petPower').textContent = D().fmt(petPower());
+    $('petMult').textContent = '×' + petMult().toFixed(2);
+    $('petDone').textContent = D().fmt(st.pets.done || 0);
   }
 
   function fmtLeft(ms) {
@@ -778,7 +671,7 @@
   /* ===================== 总倍率 & 主循环 ===================== */
 
   function mult() {
-    return stockMult() * fleetMult() * (1 + badgeCount() * 0.03) * (1 + S().idle.core * 0.02);
+    return stockMult() * petMult() * (1 + badgeCount() * 0.03) * (1 + S().idle.core * 0.02);
   }
 
   var autoAcc = 0;
@@ -835,7 +728,7 @@
       t.addEventListener('click', function () { setTimeout(render, 0); });
     });
 
-    // 离线收益在 game.js 里只按基础产出算过一次；这里补上股市/舰队/星章的加成
+    // 离线收益在 game.js 里只按基础产出算过一次；这里补上股市/宠物/星章的加成
     var r = st.idle.report;
     if (r && r.away > 0) {
       var extra = D().cps * Math.min(r.away, IDLE_CAP_H * 3600 * 1000) / 1000 * r.rate * (mult() - 1);
@@ -859,9 +752,9 @@
     tick: function (dt) { tick(dt); slowRender(dt); },
     mult: mult,
     capital: capital,
-    fleetPower: fleetPower,
+    petPower: petPower,
     stockMult: stockMult,
-    fleetMult: fleetMult,
+    petMult: petMult,
     badges: badgeCount
   };
 })(window);

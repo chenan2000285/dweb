@@ -1,7 +1,7 @@
 /* ============================================================
    点点星球 v4
    1 主题变量  2 布局  3 顶部/身份/星球条  4 星球舞台  5 标签与列表
-   6 图鉴与预览  7 天气面板  8 弹窗  9 开场 chenan  10 动画
+   6 图鉴与预览  7 天气面板  8 弹窗  9 开场  10 动画
    ============================================================ */
 
 :root { --gold: #d8b25a; }
@@ -899,7 +899,7 @@ body[data-world="5"] {
 .toast.show { transform: translate(-50%, 0); }
 
 /* ============================================================
-   开场 chenan
+   开场
    ============================================================ */
 .intro {
   position: fixed;
@@ -1622,56 +1622,82 @@ button:disabled { opacity: .4; }
   margin-bottom: 8px;
 }
 
-/* ===== 账号 / 后台 ===== */
-.au-row {
+/* ===== 账号面板 / 管理员后台 ===== */
+.auth-box {
+  margin: 12px 0 6px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .04);
+  border: 1px solid rgba(255, 255, 255, .08);
+}
+
+.auth-box .lb-full { margin-bottom: 8px; }
+
+.auth-acts {
   display: flex;
   gap: 8px;
-  margin-top: 4px;
 }
-.au-row button { flex: 1; }
 
-.lb-me {
+.auth-acts .ghost {
+  flex: 1 1 0;
+  padding: 10px 6px;
+  font-size: 13px;
+}
+
+.me-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 6px;
+  padding: 8px 10px 8px 12px;
+  border-radius: 12px;
+  background: var(--acc-soft);
+  border: 1px solid var(--acc);
+}
+
+.me-name {
   flex: 1 1 auto;
   min-width: 0;
-  padding: 11px 13px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, .05);
-  border: 1px solid rgba(255, 255, 255, .1);
-  font-size: 13px;
-  color: var(--acc2);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 13px;
+  color: #e8dcc8;
 }
 
-.lb-tag.warn {
-  color: #e2c07a;
-  border-color: rgba(226, 192, 122, .5);
-  background: rgba(226, 192, 122, .12);
+.me-name b { color: var(--acc2); }
+
+.ghost.tiny {
+  flex: 0 0 auto;
+  padding: 6px 9px;
+  font-size: 12px;
+  border-radius: 9px;
+  white-space: nowrap;
 }
 
 .admin-box {
-  margin-top: 18px;
-  padding-top: 14px;
-  border-top: 1px solid rgba(255, 255, 255, .1);
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, .09);
 }
-.admin-box.hidden { display: none; }
+
 .admin-box h3 {
-  font-size: 15px;
-  margin: 0 0 6px;
-  color: var(--acc2);
+  margin: 0 0 4px;
+  font-size: 14px;
+  color: #e2c07a;
 }
 
 .admin-row {
   padding: 10px 12px;
-  margin-bottom: 8px;
+  margin-top: 8px;
   border-radius: 12px;
   background: rgba(255, 255, 255, .04);
-  border: 1px solid rgba(255, 255, 255, .07);
+  font-size: 13px;
 }
+
 .admin-row.red {
-  border-color: rgba(224, 110, 96, .6);
-  background: rgba(224, 110, 96, .1);
+  background: rgba(200, 90, 80, .12);
+  border: 1px solid rgba(200, 90, 80, .38);
 }
 
 .admin-head {
@@ -1679,27 +1705,159 @@ button:disabled { opacity: .4; }
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
-  font-size: 13px;
 }
-.admin-head b { color: #e8dcc8; }
-.admin-head .small { color: #9a8f7d; font-size: 11px; }
+
+.admin-head b { color: #e8dcc8; font-weight: 600; }
 
 .admin-why {
-  margin-top: 4px;
-  font-size: 11px;
+  margin-top: 5px;
+  font-size: 12px;
   color: #e08a80;
+  line-height: 1.5;
 }
+
 .admin-why.ok { color: #8fd6a4; }
 
 .admin-acts {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   margin-top: 8px;
-  flex-wrap: wrap;
 }
-.ghost.tiny {
-  flex: 0 0 auto;
-  padding: 6px 10px;
-  font-size: 11px;
-  white-space: nowrap;
+
+/* ===== 宠物 & 皮肤 ===== */
+.pet-say {
+  position: absolute;
+  left: 10px;
+  right: 62px;
+  bottom: 50px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px 5px 5px;
+  border-radius: 16px 16px 16px 5px;
+  background: rgba(18, 14, 11, .82);
+  border: 1px solid var(--acc-soft);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .35);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: #f2e8d6;
+  opacity: 0;
+  transform: translateY(7px) scale(.96);
+  transition: opacity .28s ease, transform .28s ease;
+  pointer-events: none;
+  z-index: 4;
+}
+.pet-say.on { opacity: 1; transform: none; }
+.pet-say-av {
+  width: 36px; height: 36px; flex: 0 0 36px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 45%, var(--acc-soft), transparent 72%);
+}
+.pet-say-text { flex: 1; min-width: 0; }
+
+.pet-list, .skin-list {
+  list-style: none;
+  margin: 8px 0 18px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pet-card {
+  position: relative;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .02));
+  border: 1px solid rgba(255, 255, 255, .09);
+  overflow: hidden;
+}
+.pet-card::before {
+  content: "";
+  position: absolute;
+  inset: -40% -10% auto -30%;
+  height: 90%;
+  background: radial-gradient(circle at 30% 30%, var(--glow), transparent 66%);
+  opacity: .30;
+  pointer-events: none;
+}
+.pet-card.locked { opacity: .70; }
+.pet-av {
+  position: relative;
+  width: 56px; height: 56px; flex: 0 0 56px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 46%, rgba(255, 255, 255, .10), transparent 72%);
+}
+.pet-info { flex: 1; min-width: 0; position: relative; }
+.pet-line { display: flex; align-items: baseline; gap: 6px; }
+.pet-line b { font-size: 14.5px; }
+.pet-title { font-size: 10.5px; color: #a2937c; }
+.pet-lv { margin-left: auto; font-style: normal; font-size: 11px; color: var(--gold); font-variant-numeric: tabular-nums; }
+.pet-bar {
+  height: 4px; margin: 6px 0 5px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, .08);
+  overflow: hidden;
+}
+.pet-bar s {
+  display: block; height: 100%;
+  background: linear-gradient(90deg, var(--acc), var(--gold));
+  border-radius: 4px;
+  transition: width .3s ease;
+}
+.pet-meta { font-size: 10.5px; line-height: 1.5; color: #a2937c; }
+.pet-ops { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.pet-ops button {
+  flex: 1;
+  min-width: 64px;
+  padding: 6px 4px;
+  border-radius: 9px;
+  border: 1px solid var(--acc-soft);
+  background: rgba(255, 255, 255, .03);
+  color: var(--acc2);
+  font-size: 11.5px;
+  cursor: pointer;
+}
+.pet-ops button:not(:disabled):active { background: var(--acc-soft); }
+.pet-ops button[data-adopt] { color: #f6ecda; background: var(--acc-soft); font-weight: 600; }
+
+.pet-skins { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.skin-dot {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 3px 4px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: #a2937c;
+  font-size: 9px;
+  cursor: pointer;
+}
+.skin-dot i { font-style: normal; }
+.skin-dot.on { border-color: var(--gold); background: rgba(216, 178, 90, .10); color: #f6ecda; }
+.skin-dot.off { opacity: .40; }
+
+.skin-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .04);
+  border: 1px solid rgba(255, 255, 255, .08);
+}
+.skin-card canvas { flex: 0 0 48px; border-radius: 50%; }
+.skin-card.own { border-color: rgba(216, 178, 90, .34); }
+.skin-owned { font-size: 11px; color: var(--gold); white-space: nowrap; }
+
+@media (max-width: 360px) {
+  .pet-say { right: 54px; font-size: 11px; }
+  .pet-av { width: 48px; height: 48px; flex-basis: 48px; }
 }

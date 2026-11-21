@@ -225,7 +225,7 @@
     this.drops = [];
     this.flakes = [];
     this.lights = [];
-    this.ships = [];
+    this.pets = [];
     this.parts = [];
     this.rings = [];
     this.kick = 0;
@@ -242,7 +242,6 @@
     this.resize();
     this.buildSky();
     this.buildPlanetBits();
-    this.buildShips();
   }
 
   PlanetScene.prototype.setWorld = function (i) {
@@ -250,7 +249,6 @@
     this.texture = null;
     this.texOff = 0;
     this.buildPlanetBits();
-    this.buildShips();
   };
 
   PlanetScene.prototype.setWeather = function (wx) {
@@ -336,19 +334,30 @@
   PlanetScene.prototype.buildPlanetBits = function () { this.buildLights(); };
   PlanetScene.prototype.buildSky = function () { this.buildStars(); };
 
-  PlanetScene.prototype.buildShips = function () {
-    var n = this.preview ? 1 : 2;
-    this.ships = [];
-    for (var i = 0; i < n; i++) {
-      var dir = i % 2 ? -1 : 1;
-      this.ships.push({
-        a: rand(0, TAU), sp: rand(0.22, 0.4) * dir,
-        radK: rand(1.45, 1.8), tilt: 0.42,
-        phase: 'orbit', p: 0, hold: 0,
-        anchor: { x: 0, y: 0 }, target: { x: 0, y: 0 },
-        trail: [], dir: 0,
+  /* ---------- 宠物：蹲在星球正面，会左右踱步、眨眼、偶尔蹦一下 ---------- */
+  PlanetScene.prototype.setPets = function (list) {
+    list = list || [];
+    var old = this.pets || [];
+    this.pets = [];
+    for (var i = 0; i < list.length && i < 6; i++) {
+      var prev = old[i];
+      this.pets.push({
+        spec: list[i],
+        a: prev ? prev.a : 0.55 + (i / Math.max(1, list.length)) * 1.9,
+        dir: prev ? prev.dir : (i % 2 ? 1 : -1),
+        sp: 0.05 + (i % 3) * 0.018,
+        ph: rand(0, TAU),
+        hop: 0,
       });
     }
+  };
+
+  // 宠物在星球正面下半球的坐标
+  PlanetScene.prototype.petPos = function (p) {
+    return {
+      x: this.cx + Math.cos(p.a) * this.r * 0.66,
+      y: this.cy + Math.sin(p.a) * this.r * 0.60,
+    };
   };
 
   /* ---------- 纹理（一张 512x256 的程序化星球表面） ---------- */
@@ -497,40 +506,23 @@
     if (crit) this.kick = 1;
   };
 
+  // 宠物在星球上刨出一小撮星尘（游戏里每 1.7 秒叫一次）
   PlanetScene.prototype.collect = function () {
-    if (!this.ships.length) return;
-    var s = null;
-    for (var i = 0; i < this.ships.length; i++) {
-      if (this.ships[i].phase === 'orbit') { s = this.ships[i]; break; }
+    if (!this.pets.length) return;
+    var p = null;
+    for (var i = 0; i < this.pets.length; i++) {
+      if (this.pets[i].hop <= 0) { p = this.pets[i]; break; }
     }
-    if (!s) return;
-    var pd = this.shipPos(s);
-    s.anchor.x = pd.x; s.anchor.y = pd.y;
-    var ang = rand(0, TAU), d = rand(0.35, 0.78);
-    s.target.x = this.cx + Math.cos(ang) * this.r * d;
-    s.target.y = this.cy + Math.sin(ang) * this.r * d;
-    s.phase = 'dive';
-    s.p = 0;
-    s.trail.length = 0;
+    if (!p) p = this.pets[Math.floor(Math.random() * this.pets.length)];
+    p.hop = 1;
+    var pd = this.petPos(p);
+    this.sparkle(pd.x, pd.y + this.r * 0.06);
+    if (this.onCollect) this.onCollect(pd.x, pd.y);
   };
 
   PlanetScene.prototype.kickIt = function () { this.kick = 1; };
 
-  PlanetScene.prototype.shipPos = function (s) {
-    if (s.phase === 'orbit') {
-      return {
-        x: this.cx + Math.cos(s.a) * this.r * s.radK,
-        y: this.cy + Math.sin(s.a) * this.r * s.radK * s.tilt,
-      };
-    }
-    var e = s.phase === 'dive' ? s.p : (s.phase === 'rise' ? s.p : 1);
-    e = e * e * (3 - 2 * e); // smoothstep
-    var lift = Math.sin(Math.PI * s.p) * this.r * 0.18;
-    return {
-      x: lerp(s.anchor.x, s.target.x, e),
-      y: lerp(s.anchor.y, s.target.y, e) - lift,
-    };
-  };
+
 
   /* ---------- 更新 ---------- */
   PlanetScene.prototype.update = function (dt) {
@@ -571,32 +563,13 @@
     if (this.bolt) { this.bolt.t -= dt; if (this.bolt.t <= 0) this.bolt = null; }
     this.boltFlash = Math.max(0, this.boltFlash - dt * 2.4);
 
-    // 飞船
-    for (i = 0; i < this.ships.length; i++) {
-      s = this.ships[i];
-      var prev = this.shipPos(s);
-      if (s.phase === 'orbit') {
-        s.a += s.sp * dt;
-      } else if (s.phase === 'dive') {
-        s.p += dt / 0.75;
-        if (s.p >= 1) {
-          s.p = 1; s.phase = 'hold'; s.hold = 0.2;
-          this.sparkle(s.target.x, s.target.y);
-          if (this.onCollect) this.onCollect(s.target.x, s.target.y);
-        }
-      } else if (s.phase === 'hold') {
-        s.hold -= dt;
-        if (s.hold <= 0) { s.phase = 'rise'; s.p = 1; }
-      } else {
-        s.p -= dt / 0.85;
-        if (s.p <= 0) { s.p = 0; s.phase = 'orbit'; s.a = Math.atan2(s.anchor.y - this.cy, s.anchor.x - this.cx); }
-      }
-      var now = this.shipPos(s);
-      s.trail.push({ x: now.x, y: now.y });
-      if (s.trail.length > 16) s.trail.shift();
-      if (Math.abs(now.x - prev.x) + Math.abs(now.y - prev.y) > 0.4) {
-        s.dir = Math.atan2(now.y - prev.y, now.x - prev.x);
-      }
+    // 宠物踱步
+    for (i = 0; i < this.pets.length; i++) {
+      s = this.pets[i];
+      s.a += s.dir * s.sp * dt;
+      if (s.a < 0.48) { s.a = 0.48; s.dir = 1; }
+      if (s.a > 2.66) { s.a = 2.66; s.dir = -1; }
+      if (s.hop > 0) s.hop = Math.max(0, s.hop - dt * 1.4);
     }
 
     // 点击粒子
@@ -666,7 +639,7 @@
     this.drawStars();
     this.drawCelestial();
     this.drawPlanet();
-    this.drawShips();
+    this.drawPets();
     this.drawParticles();
     this.drawWeatherSky(cfg);
     this.drawVignette();
@@ -904,55 +877,23 @@
     }
   };
 
-  PlanetScene.prototype.drawShips = function () {
-    var ctx = this.ctx, pal = PALETTES[this.world], r = this.r;
-    var scale = r / 120;
-
-    for (var i = 0; i < this.ships.length; i++) {
-      var s = this.ships[i];
-      var pos = this.shipPos(s);
-
-      // 尾巴
-      if (s.trail.length > 1) {
-        ctx.beginPath();
-        ctx.moveTo(s.trail[0].x, s.trail[0].y);
-        for (var k = 1; k < s.trail.length; k++) ctx.lineTo(s.trail[k].x, s.trail[k].y);
-        ctx.strokeStyle = rgba(pal.planet.light, 0.5);
-        ctx.lineWidth = Math.max(0.8, 1.4 * scale);
-        ctx.lineCap = 'round';
-        ctx.stroke();
-      }
-
-      ctx.save();
-      ctx.translate(pos.x, pos.y);
-      ctx.rotate(s.dir);
-
-      // 尾焰
-      var fg = ctx.createRadialGradient(-5 * scale, 0, 0, -5 * scale, 0, 12 * scale);
-      fg.addColorStop(0, rgba('#c8d6d6', 0.85));
-      fg.addColorStop(1, rgba('#c8d6d6', 0));
-      ctx.fillStyle = fg;
-      ctx.beginPath(); ctx.arc(-5 * scale, 0, 12 * scale, 0, TAU); ctx.fill();
-
-      // 机身
-      ctx.beginPath();
-      ctx.moveTo(6.5 * scale, 0);
-      ctx.lineTo(-2.5 * scale, 4.2 * scale);
-      ctx.lineTo(-5 * scale, 0);
-      ctx.lineTo(-2.5 * scale, -4.2 * scale);
-      ctx.closePath();
-      ctx.fillStyle = '#efe3cb';
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(255,255,255,.6)';
-      ctx.lineWidth = Math.max(0.5, 0.6 * scale);
-      ctx.stroke();
-
-      // 舷窗
-      ctx.fillStyle = pal.accent;
-      ctx.beginPath();
-      ctx.arc(1.6 * scale, 0, Math.max(0.6, 1.5 * scale), 0, TAU);
-      ctx.fill();
-      ctx.restore();
+  // 会呼吸的小家伙们：按 y 排序，离镜头近的后画
+  PlanetScene.prototype.drawPets = function () {
+    if (!this.pets.length) return;
+    var art = global.DDPets;
+    if (!art || !art.drawCreature) return;
+    var list = this.pets.slice().sort(function (a, b) {
+      return this.petPos(a).y - this.petPos(b).y;
+    }.bind(this));
+    var base = this.preview ? 0.9 : 1;
+    for (var i = 0; i < list.length; i++) {
+      var p = list[i];
+      var pos = this.petPos(p);
+      var depth = 0.82 + Math.sin(p.a) * 0.30;
+      var size = Math.max(18, this.r * 0.46 * depth * base);
+      var flip = p.dir > 0;
+      art.drawCreature(this.ctx, pos.x, pos.y, size, p.spec.kind,
+        p.spec.colors, this.t + p.ph, flip, p.hop, p.spec.acc);
     }
   };
 

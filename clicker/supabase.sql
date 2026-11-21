@@ -48,12 +48,12 @@ alter table public.sessions enable row level security;
 -- 内部小工具
 -- ============================================================
 create or replace function public._uid(p_token text) returns uuid
-language sql security definer set search_path = public as $$
+language sql security definer set search_path = public, extensions as $$
   select uid from public.sessions where token = p_token and expires_at > now();
 $$;
 
 create or replace function public._admin(p_token text) returns uuid
-language sql security definer set search_path = public as $$
+language sql security definer set search_path = public, extensions as $$
   select s.uid from public.sessions s
     join public.users u on u.id = s.uid
    where s.token = p_token and s.expires_at > now() and u.role = 'admin';
@@ -63,7 +63,7 @@ $$;
 -- 4. 注册 / 登录 / 我是谁 / 退出
 -- ============================================================
 create or replace function public.api_register(p_user text, p_pass text) returns jsonb
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, extensions as $$
 declare v_uid uuid; v_tok text; v_name text;
 begin
   v_name := btrim(coalesce(p_user, ''));
@@ -88,7 +88,7 @@ begin
 end $$;
 
 create or replace function public.api_login(p_user text, p_pass text) returns jsonb
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, extensions as $$
 declare r record; v_tok text;
 begin
   select * into r from public.users where lower(username) = lower(btrim(coalesce(p_user, '')));
@@ -108,7 +108,7 @@ begin
 end $$;
 
 create or replace function public.api_me(p_token text) returns jsonb
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, extensions as $$
 declare r record; v_uid uuid;
 begin
   v_uid := public._uid(p_token);
@@ -124,7 +124,7 @@ begin
 end $$;
 
 create or replace function public.api_logout(p_token text) returns jsonb
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, extensions as $$
 begin
   delete from public.sessions where token = p_token;
   return jsonb_build_object('ok', true);
@@ -136,7 +136,7 @@ end $$;
 create or replace function public.api_submit(
   p_token text, p_total numeric, p_clicks numeric, p_planet int default 1
 ) returns jsonb
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, extensions as $$
 declare
   v_uid uuid;
   r record;
@@ -214,7 +214,7 @@ end $$;
 -- ============================================================
 create or replace function public.api_board(p_limit int default 50) returns table (
   pos int, name text, total numeric, planets int, suspicious boolean, created_at timestamptz
-) language sql security definer set search_path = public as $$
+) language sql security definer set search_path = public, extensions as $$
   select (row_number() over (order by total desc, updated_at asc))::int,
          username, total, planets,
          (unverified or hard_rejects >= 1),
@@ -230,7 +230,7 @@ $$;
 --    注意：故意【没有】删除用户的函数 —— 谁都删不了号
 -- ============================================================
 create or replace function public.api_admin_list(p_token text) returns jsonb
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, extensions as $$
 declare v_uid uuid; v_out jsonb;
 begin
   v_uid := public._admin(p_token);
@@ -277,7 +277,7 @@ end $$;
 
 -- 手动加星尘：只加不减，最多一次 1 万亿
 create or replace function public.api_admin_grant(p_token text, p_name text, p_amount numeric)
-returns jsonb language plpgsql security definer set search_path = public as $$
+returns jsonb language plpgsql security definer set search_path = public, extensions as $$
 declare v_uid uuid; v_new numeric;
 begin
   v_uid := public._admin(p_token);
@@ -297,7 +297,7 @@ end $$;
 
 -- 解锁星球：只能往前解锁，1-6
 create or replace function public.api_admin_unlock(p_token text, p_name text, p_planets int)
-returns jsonb language plpgsql security definer set search_path = public as $$
+returns jsonb language plpgsql security definer set search_path = public, extensions as $$
 declare v_uid uuid; v_new int;
 begin
   v_uid := public._admin(p_token);
@@ -317,7 +317,7 @@ end $$;
 
 -- 人工判定：'ok' = 真玩家（不再标红），'cheat' = 假的（掉榜），null = 撤销判定
 create or replace function public.api_admin_judge(p_token text, p_name text, p_verdict text)
-returns jsonb language plpgsql security definer set search_path = public as $$
+returns jsonb language plpgsql security definer set search_path = public, extensions as $$
 declare v_uid uuid; v_name text;
 begin
   v_uid := public._admin(p_token);

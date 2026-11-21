@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#12100c">
-<title>点点星球 · chenan</title>
+<title>点点星球 · 晨安之作</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body data-world="0" data-phase="night">
@@ -60,6 +60,11 @@
 
     <div id="floatLayer" class="float-layer"></div>
 
+    <div id="petSay" class="pet-say hidden" aria-live="polite">
+      <span class="pet-say-av" id="petSayAv"></span>
+      <span class="pet-say-text" id="petSayText"></span>
+    </div>
+
     <div id="combo" class="combo hidden" aria-live="polite">
       <div class="combo-main">
         <b id="comboNum">0</b>
@@ -70,7 +75,7 @@
     </div>
 
     <div class="stage-foot">
-      <span id="stageNote">🛰 飞船待命中</span>
+      <span id="stageNote">🐾 宠物待命中</span>
     </div>
   </section>
 
@@ -96,7 +101,7 @@
     <button class="tab" data-tab="asset" type="button">资产</button>
     <button class="tab" data-tab="rank" type="button">身份</button>
     <button class="tab" data-tab="stock" type="button">股市</button>
-    <button class="tab" data-tab="fleet" type="button">舰队</button>
+    <button class="tab" data-tab="pets" type="button">宠物</button>
     <button class="tab" data-tab="play" type="button">玩法</button>
     <button class="tab" data-tab="leader" type="button">排行</button>
   </nav>
@@ -141,18 +146,21 @@
     <ul id="stkNews" class="news-list"></ul>
   </section>
 
-  <section class="panel" id="panel-fleet">
+  <section class="panel" id="panel-pets">
     <div class="sys-head">
-      <div><b id="fltPower">0</b><span>舰队战力</span></div>
-      <div><b id="fltMult">×1.00</b><span>舰队加成</span></div>
-      <div><b id="fltDone">0</b><span>完成远征</span></div>
+      <div><b id="petPower">0</b><span>宠物战力</span></div>
+      <div><b id="petMult">×1.00</b><span>宠物加成</span></div>
+      <div><b id="petDone">0</b><span>探索次数</span></div>
     </div>
-    <h2>远征泊位</h2>
-    <p class="panel-tip">按真实时间计时，回来一次性带回大量星尘；关掉页面也照样在飞。</p>
-    <ul id="expSlots" class="exp-list"></ul>
-    <h2>船坞</h2>
-    <p class="panel-tip">买船提升战力，战力越高能去越远的航线，也放大全部产出。</p>
-    <ul id="shipList" class="shop-list"></ul>
+    <h2>我的宠物 <span id="petCount" class="ach-count"></span></h2>
+    <p class="panel-tip">每颗星球都有自己的伙伴，越往后的星球伙伴越多。摸摸和喂食都会涨亲密度，升级后战力更高。它们会说话——你发挥好的时候，它们会夸你。</p>
+    <ul id="petList" class="pet-list"></ul>
+    <h2>宠物探索</h2>
+    <p class="panel-tip">派宠物出门，按真实时间回来，一次带回一大笔星尘，比原来的星舰远征划算得多。宠物战力越高，能去的地方越远。</p>
+    <ul id="petExp" class="exp-list"></ul>
+    <h2>皮肤商店</h2>
+    <p class="panel-tip">每颗星球 4 款皮肤，用星尘购买；买到的皮肤穿在本星球的宠物身上，点宠物卡片上的「换肤」就能换。</p>
+    <ul id="skinList" class="skin-list"></ul>
   </section>
 
   <section class="panel" id="panel-play">
@@ -171,33 +179,36 @@
 
   <section class="panel" id="panel-leader">
     <h2>星际排行</h2>
-    <p class="panel-tip">分数存在服务器上，本地改成多少都不算数——下次上传会被拒收，然后回滚成服务器的真值。登录后会自动存档。</p>
+    <p class="panel-tip">分数存在服务器上，本地改成多少都不算数——下次上传会被拒收，然后回滚成服务器的真值。上传时间随你，关页面时会自动存一次。</p>
+    <div id="lbSetup" class="lb-setup hidden">
+      <p class="panel-tip small">第一次用：把 Supabase 的 Project URL 和 anon key 粘进来，只存在这台手机上。</p>
+      <input id="lbUrl" class="lb-input lb-full" placeholder="https://xxxx.supabase.co" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <input id="lbKey" class="lb-input lb-full" placeholder="anon public key" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <button id="lbSave" class="ghost wide" type="button">保存并连接</button>
+    </div>
 
-    <div id="authBox" class="lb-setup">
-      <p class="panel-tip small">没账号就输入新名字和密码，点「注册」；以后用同一对登录。不用邮箱。</p>
-      <input id="auName" class="lb-input lb-full" maxlength="16" placeholder="账号（2–16 个字）" autocomplete="username">
+    <div id="authBox" class="auth-box hidden">
+      <input id="auName" class="lb-input lb-full" maxlength="16" placeholder="起个名字（2–16 字）" autocomplete="username" autocapitalize="off" spellcheck="false">
       <input id="auPass" class="lb-input lb-full" type="password" maxlength="64" placeholder="密码（至少 4 位）" autocomplete="current-password">
-      <div class="au-row">
+      <div class="auth-acts">
         <button id="auLogin" class="ghost" type="button">登录</button>
-        <button id="auReg" class="primary" type="button">注册</button>
+        <button id="auReg" class="ghost" type="button">注册</button>
       </div>
     </div>
 
-    <div id="meBox" class="hidden">
-      <div class="lb-name-row">
-        <span class="lb-me" id="meName">—</span>
-        <button id="lbSync" class="ghost" type="button">立即上传</button>
-        <button id="auOut" class="ghost" type="button">退出</button>
-      </div>
+    <div id="meBox" class="me-box hidden">
+      <span class="me-name">已登录 <b id="meName"></b></span>
+      <button id="lbSync" class="ghost tiny" type="button">立即上传</button>
+      <button id="auOut" class="ghost tiny" type="button">退出</button>
     </div>
 
-    <p class="panel-tip small" id="lbStatus" data-tone="idle">检查登录状态…</p>
+    <p class="panel-tip small" id="lbStatus" data-tone="idle">未配置云端</p>
     <ol id="lbList" class="lb-list"></ol>
     <button id="lbRefresh" class="ghost wide" type="button">刷新排行榜</button>
 
     <div id="adminBox" class="admin-box hidden">
-      <h3>后台 · 用户管理</h3>
-      <p class="panel-tip small">红的系统自动标的，真假你定。账号不能删（故意的）。</p>
+      <h3>管理员后台</h3>
+      <p class="panel-tip small">看到可疑的人就判假，他会从排行榜消失。</p>
       <div id="adminList"></div>
     </div>
   </section>
@@ -209,15 +220,15 @@
 
 </main>
 
-<!-- ===== 开场 chenan ===== -->
+<!-- ===== 开场 ===== -->
 <div id="intro" class="intro">
   <div class="intro-glow"></div>
   <div class="intro-orbit"></div>
-  <div class="intro-logo" aria-label="chenan">
-    <span style="--i:0">c</span><span style="--i:1">h</span><span style="--i:2">e</span><span style="--i:3">n</span><span style="--i:4">a</span><span style="--i:5">n</span>
+  <div class="intro-logo" aria-label="点点星球">
+    <span style="--i:0">点</span><span style="--i:1">点</span><span style="--i:2">星</span><span style="--i:3">球</span>
   </div>
   <div class="intro-line"><i></i></div>
-  <p class="intro-sub">点点星球 · CLICK THE COSMOS</p>
+  <p class="intro-sub">晨安之作 · CLICK THE COSMOS</p>
   <p class="intro-skip">轻触任意处进入</p>
 </div>
 
@@ -227,12 +238,13 @@
     <h2>欢迎来到点点星球 👋</h2>
     <ol class="guide-list">
       <li>点星球拿星尘，但<b>点击是全游戏最弱的赚钱方式</b>，只够启动。连锁、暴击、共振只是添头。</li>
-      <li><b>真正的大头有三个</b>：股市（资本加成）、舰队（远征一次顶几十分钟挂机）、小游戏（一次顶两三分钟产出，还掉星章）。</li>
+      <li><b>真正的大头有三个</b>：股市（资本加成）、宠物探索（一次顶几十分钟挂机，比星舰强得多）、小游戏（一次顶两三分钟产出，还掉星章）。</li>
       <li>股市：低买高卖，持仓每 2 分钟分红；<b>市值越高，全局产出乘得越多</b>，后面几个身份直接要求市值。</li>
-      <li>舰队：船坞买船 → 去近地/深空/虫洞远征，按真实时间计时；战力越高能去越远，回来一次给一大笔。</li>
+      <li>宠物：每颗星球都有专属伙伴（越往后越多）。摸摸、喂食升亲密度和战力，派它们去星草坡/流星旷野/幻境裂隙探索，按真实时间回来给一大笔星尘。</li>
+      <li>宠物也会说话：你连击爆发、共振成功、晋升或者它探索回来时，它会冒出一句自己的话。皮肤商店里每颗星球有 4 款皮肤，用星尘买来给宠物换毛色。</li>
       <li>小游戏：3 个休闲玩法，8 分钟回一次机会（最多 8 次）；赢 2 局 1 枚星章，星章加全局产出，后期身份也要求星章。</li>
       <li>挂机：关掉页面也按离线效率生产，最多累计 12 小时；「采集核心」把效率从 55% 拉到 100%，还能买自动点击无人机。</li>
-      <li>身份晋升要同时满足：累计星尘、声望、<b>共振层数</b>，后期还要<b>股票市值、舰队战力、星章</b>。四条腿缺一条都卡住。</li>
+      <li>身份晋升要同时满足：累计星尘、声望、<b>共振层数</b>，后期还要<b>股票市值、宠物战力、星章</b>。四条腿缺一条都卡住。</li>
       <li>星核共振：按住蓄力，松手落在绿区 +1 层，全产出 +7%（最高 8 层），22 秒不碰会掉层。</li>
       <li>六颗星球，每颗 9 个身份、10 项升级、7 种资产。正常玩到通关大约要一整天，慢慢来。</li>
     </ol>
@@ -300,6 +312,7 @@
 <div id="toast" class="toast"></div>
 
 <script src="scene.js"></script>
+<script src="pets.js"></script>
 <script src="game.js"></script>
 <script src="systems.js"></script>
 <script src="fx.js"></script>

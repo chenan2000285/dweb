@@ -100,7 +100,27 @@
       else blip({ type: 'sawtooth', f: 300, f2: 110, dur: 0.42, gain: 0.13 });
     },
     buy: function () { blip({ type: 'triangle', f: 520, f2: 780, dur: 0.14, gain: 0.12 }); },
-    tide: function () { noise({ dur: 0.9, f: 200, f2: 1200, gain: 0.1, type: 'lowpass' }); }
+    tide: function () { noise({ dur: 0.9, f: 200, f2: 1200, gain: 0.1, type: 'lowpass' }); },
+    resoCharge: function () {
+      blip({ type: 'sine', f: 130, f2: 320, dur: 0.26, gain: 0.10 });
+    },
+    reso: function (n) {
+      var t = toneOf(S().world), base = t.base * 1.7;
+      [0, 4, 7, 12].forEach(function (d, i) {
+        setTimeout(function () {
+          blip({ type: 'sine', f: base * Math.pow(2, d / 12) * (1 + (n || 0) * 0.03),
+                dur: 0.45, gain: 0.12 });
+        }, i * 65);
+      });
+      noise({ dur: 0.22, f: 2000, f2: 5200, gain: 0.06 });
+    },
+    resoMiss: function () {
+      blip({ type: 'sawtooth', f: 230, f2: 68, dur: 0.42, gain: 0.15 });
+      noise({ dur: 0.18, f: 700, f2: 180, gain: 0.07 });
+    },
+    resoDecay: function () {
+      blip({ type: 'triangle', f: 420, f2: 230, dur: 0.3, gain: 0.08 });
+    }
   };
 
   /* ===================== 2. 特效层 ===================== */
@@ -301,6 +321,7 @@
       else if (msg.indexOf('👑') >= 0 || msg.indexOf('晋级') >= 0 || msg.indexOf('身份') >= 0) SFX.rank();
       else if (msg.indexOf('🏆') >= 0 || msg.indexOf('成就') >= 0) SFX.rank();
       else if (msg.indexOf('🔭') >= 0 || msg.indexOf('星球') >= 0) SFX.world();
+      else if (msg.indexOf('⚡') >= 0 || msg.indexOf('💨') >= 0 || msg.indexOf('🌫') >= 0) { /* 共振音效在 game.js 直接触发 */ }
       else SFX.buy();
     }
     return rawToast.apply(DD, arguments);

@@ -112,14 +112,14 @@
     [0, 1, 2, 2, 3, 4, 5, 6, 7],
     [0, 1, 2, 3, 3, 4, 5, 6, 8]
   ];
-  // 舰队战力门槛：只有后三颗星球的后期身份需要
-  const FLEET_NEED = [
+  // 宠物战力门槛：只有后几颗星球的后期身份需要
+  const PET_NEED = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 50, 150, 400],
-    [0, 0, 0, 0, 0, 300, 800, 1600, 3000],
-    [0, 0, 0, 0, 0, 900, 2500, 6000, 12000],
-    [0, 0, 0, 0, 0, 1600, 4200, 9000, 18000],
-    [0, 0, 0, 0, 0, 2400, 6000, 13000, 26000]
+    [0, 0, 0, 0, 0, 0, 30, 90, 240],
+    [0, 0, 0, 0, 0, 180, 480, 960, 1800],
+    [0, 0, 0, 0, 0, 540, 1500, 3600, 7200],
+    [0, 0, 0, 0, 0, 960, 2500, 5400, 10800],
+    [0, 0, 0, 0, 0, 1440, 3600, 7800, 15600]
   ];
   // 星章门槛：小游戏打出来的
   const BADGE_NEED = [
@@ -198,8 +198,12 @@
         reward: 500 * Math.pow(10, wi), ok: () => state.mini.wins >= 3 },
       { id: 'stock', name: '第一桶金', desc: '股票持仓市值达到 ' + fmt(1e5 * gain) + ' 星尘',
         reward: 800 * Math.pow(10, wi), ok: () => window.DDSystems && DDSystems.capital() >= 1e5 * gain },
-      { id: 'fleet', name: '舰队出航', desc: '完成 3 次远征',
-        reward: 1200 * Math.pow(10, wi), ok: () => state.fleet.done >= 3 },
+      { id: 'pets', name: '宠物出勤', desc: '让宠物完成 3 次探索',
+        reward: 1200 * Math.pow(10, wi), ok: () => state.pets.done >= 3 },
+      { id: 'petlv', name: '养得不错', desc: '任意一只宠物到 Lv.5',
+        reward: 900 * Math.pow(10, wi), ok: () => Object.keys(state.pets.owned).some((k) => state.pets.owned[k].lv >= 5) },
+      { id: 'skins', name: '换个毛色', desc: '收藏本星球任意 1 款皮肤',
+        reward: 1500 * Math.pow(10, wi), ok: () => Object.keys(state.pets.skins || {}).length > 0 },
       { id: 'done', name: '星球毕业', desc: '拿满本星球全部身份',
         reward: 5000 * Math.pow(10, wi), ok: () => state.worldDone }
     );
@@ -214,7 +218,7 @@
       dust: DUST_NEED(i, gain),
       rep: REP_NEED[i],
       cap: i >= 5 && wi > 0 ? Math.round(DUST_NEED(i, gain) * 0.02) : 0,
-      fleet: FLEET_NEED[wi][i],
+      pet: PET_NEED[wi][i],
       badge: BADGE_NEED[wi][i]
     }));
     const upgrades = UP_TIERS.map((t, k) => ({
@@ -258,7 +262,9 @@
     { id: 'g_reso',   name: '共振老手',   desc: '累计共振成功 50 次',            reward: 20000,   ok: () => state.resoHits >= 50 },
     { id: 'g_trade',  name: '职业股民',   desc: '股市累计成交 200 笔',           reward: 200000,  ok: () => state.stats && state.stats.trades >= 200 },
     { id: 'g_cap',    name: '资本玩家',   desc: '股票持仓市值达到 1 亿',         reward: 800000,  ok: () => window.DDSystems && DDSystems.capital() >= 1e8 },
-    { id: 'g_exp',    name: '远征队',     desc: '完成 20 次舰队远征',            reward: 300000,  ok: () => state.fleet && state.fleet.done >= 20 },
+    { id: 'g_exp',    name: '探索队',     desc: '宠物累计完成 20 次探索',        reward: 300000,  ok: () => state.pets && state.pets.done >= 20 },
+    { id: 'g_petall', name: '毛茸茸的家', desc: '在不同星球收养 6 只宠物',       reward: 600000,  ok: () => Object.keys(state.pets ? state.pets.owned : {}).length >= 6 },
+    { id: 'g_skin',   name: '衣橱收藏家', desc: '收藏 6 款宠物皮肤',             reward: 800000,  ok: () => Object.keys(state.pets ? state.pets.skins : {}).length >= 6 },
     { id: 'g_badge',  name: '星章收藏家', desc: '拿到 10 枚星章',                reward: 500000,  ok: () => state.mini && state.mini.badges >= 10 },
     { id: 'g_mini',   name: '小游戏高手', desc: '小游戏累计胜利 30 次',          reward: 400000,  ok: () => state.mini && state.mini.wins >= 30 },
     { id: 'g_idle',   name: '挂机也是玩', desc: '离线挂机累计收入 1 亿',         reward: 200000,  ok: () => state.stats && state.stats.idleDust >= 1e8 },
@@ -317,7 +323,7 @@
     // ===== 跨星球保留的四大系统 =====
     mini: { energy: 8, energyAt: Date.now(), wins: 0, plays: 0, badges: 0, best: {} },
     stocks: { hold: {}, prices: {}, news: [], newsAt: 0, divAt: 0, profit: 0 },
-    fleet: { ships: {}, exps: [null, null, null], done: 0 },
+    pets: { owned: {}, exps: [null, null, null], done: 0, skins: {}, pat: {}, migrated: false },
     idle: { core: 0, auto: 0, report: null },
     stats: { trades: 0, exps: 0, miniDust: 0, stockProfit: 0, idleDust: 0 }
   });
@@ -363,7 +369,8 @@
   const SYS = () => window.DDSystems;
   const sysMult = () => (SYS() && SYS().mult ? SYS().mult() : 1);
   const capital = () => (SYS() && SYS().capital ? SYS().capital() : 0);
-  const fleetPower = () => (SYS() && SYS().fleetPower ? SYS().fleetPower() : 0);
+  const petPower = () => (window.DDPets ? DDPets.petPower() : 0);
+  const petMult = () => (window.DDPets ? DDPets.petMult() : 1);
   const badges = () => (state.mini ? state.mini.badges : 0);
 
   function rankReqOK(i) {
@@ -373,7 +380,7 @@
     if (totalRep() < r.rep) return false;
     if (state.reso < ((W().resoNeed || [])[i] || 0)) return false;
     if (r.cap && capital() < r.cap) return false;
-    if (r.fleet && fleetPower() < r.fleet) return false;
+    if (r.pet && petPower() < r.pet) return false;
     if (r.badge && badges() < r.badge) return false;
     return true;
   }
@@ -518,10 +525,17 @@
       state.stocks.hold = Object.assign({}, (d.stocks && d.stocks.hold) || {});
       state.stocks.prices = Object.assign({}, (d.stocks && d.stocks.prices) || {});
       state.stocks.news = Array.isArray(d.stocks && d.stocks.news) ? d.stocks.news : [];
-      state.fleet = Object.assign(base.fleet, d.fleet || {});
-      state.fleet.ships = Object.assign({}, (d.fleet && d.fleet.ships) || {});
-      state.fleet.exps = Array.isArray(d.fleet && d.fleet.exps) ? d.fleet.exps : [null, null, null];
-      while (state.fleet.exps.length < 3) state.fleet.exps.push(null);
+      state.pets = Object.assign(base.pets, d.pets || {});
+      state.pets.owned = Object.assign({}, (d.pets && d.pets.owned) || {});
+      state.pets.skins = Object.assign({}, (d.pets && d.pets.skins) || {});
+      state.pets.pat = Object.assign({}, (d.pets && d.pets.pat) || {});
+      state.pets.exps = Array.isArray(d.pets && d.pets.exps) ? d.pets.exps : [null, null, null];
+      while (state.pets.exps.length < 3) state.pets.exps.push(null);
+      // 老存档的舰队远征次数并进宠物探索
+      if (d.fleet && d.fleet.done) {
+        state.pets.done += num(d.fleet.done);
+        state.pets.migrated = true;
+      }
       state.idle = Object.assign(base.idle, d.idle || {});
       state.stats = Object.assign(base.stats, d.stats || {});
 
@@ -699,7 +713,7 @@
 
   scene.onCollect = (x, y) => {
     if (pendingGain >= 1) {
-      spawnFloatAt('+' + fmt(pendingGain), false, x, y, 'ship');
+      spawnFloatAt('+' + fmt(pendingGain), false, x, y, 'pet');
       pendingGain = 0;
     }
   };
@@ -822,7 +836,7 @@
     asset: $('panel-asset'),
     rank: $('panel-rank'),
     stock: $('panel-stock'),
-    fleet: $('panel-fleet'),
+    pets: $('panel-pets'),
     play: $('panel-play'),
     leader: $('panel-leader'),
   };
@@ -902,7 +916,7 @@
           '<div class="rank-req">累计星尘 ' + fmt(r.dust) + ' · 声望 ' + fmt(r.rep) +
             ((W().resoNeed && W().resoNeed[i]) ? ' · 共振 ' + W().resoNeed[i] + ' 层' : '') +
             (r.cap ? ' · 市值 ' + fmt(r.cap) : '') +
-            (r.fleet ? ' · 舰队 ' + fmt(r.fleet) : '') +
+            (r.pet ? ' · 宠物 ' + fmt(r.pet) : '') +
             (r.badge ? ' · 星章 ' + r.badge : '') + '</div>' +
         '</div>' +
         '<span class="rank-badge">未达成</span>';
@@ -988,11 +1002,12 @@
       : (i < state.world ? '已经点亮过的星球，可以回头看看它现在的天气。'
                          : '跃迁到这里后，本星球的星尘、升级、资产、共振层数都会清零，从这颗星球重新发育。');
 
+    const petN = window.DDPets && DDPets.PETS[i] ? DDPets.PETS[i].length : 0;
     el.pvFacts.innerHTML =
       '<div><b>×' + w.gain + '</b>收益倍率</div>' +
       '<div><b>' + w.upgrades.length + '</b>项升级</div>' +
-      '<div><b>' + w.achs.length + '</b>个成就</div>' +
-      '<div><b>' + (w.gate ? fmt(w.gate) : '0') + '</b>跃迁门槛</div>';
+      '<div><b>' + petN + '</b>只宠物</div>' +
+      '<div><b>' + w.achs.length + '</b>个成就</div>';
 
     el.pvRanks.innerHTML = w.ranks.map((r) =>
       '<li><span>' + r.icon + ' ' + r.name + '</span><em>星尘 ' + fmt(r.dust) + ' · 声望 ' + fmt(r.rep) + '</em></li>'
@@ -1002,6 +1017,7 @@
 
     if (pvScene) { pvScene.stop(); pvScene = null; }
     pvScene = new PlanetScene(el.pvCanvas, { world: i, preview: true, weather: wx });
+    if (window.DDPets && DDPets.previewPet) pvScene.setPets([DDPets.previewPet(i)]);
     requestAnimationFrame(() => {
       if (!pvScene) return;
       pvScene.resize();
@@ -1087,6 +1103,7 @@
     scene.kickIt();
     spawnConfetti(36);
     toast('🎖 晋升「' + promoted.name + '」· 星尘翻倍，点击力 ×1.6', 2600);
+    if (window.DDPets) DDPets.speak('big');
 
     if (state.rank >= ranks.length && !state.worldDone) {
       state.worldDone = true;
@@ -1140,6 +1157,7 @@
     doFlash();
     checkAchs();
 
+    if (window.DDPets) DDPets.onWorldEnter();
     toast('🚀 抵达「' + next.name + '」· 收益 ×' + next.gain + '，' + next.upgrades.length + ' 项升级', 3600);
     return true;
   }
@@ -1223,6 +1241,7 @@
     el.resoRoot.classList.add('on');
     el.resoBtn.textContent = '松手锁定';
     resoDraw();
+    if (window.DDFX) DDFX.sfx.resoCharge();
     reso.raf = requestAnimationFrame(resoLoop);
   }
 
@@ -1244,15 +1263,18 @@
       state.total += burst;
       spawnFloatAt('⚡ 共振 +' + fmt(burst), true,
         (el.stage.clientWidth || 320) / 2, (el.stage.clientHeight || 320) * 0.4, 'reso');
+      if (window.DDFX) DDFX.sfx.reso(state.reso);
       scene.kickIt();
       spawnConfetti(10);
       toast('⚡ 共振成功 · ' + state.reso + ' 层，全产出 +' + Math.round((resoMult() - 1) * 100) + '%', 2200);
+      if (state.reso >= 2 && window.DDPets) DDPets.speak('big');
       checkRanks();
       checkAchs();
     } else {
       state.resoMiss += 1;
       state.reso = Math.max(0, state.reso - 1);
       state.resoLastAt = Date.now();
+      if (window.DDFX) DDFX.sfx.resoMiss();
       reso.coolUntil = Date.now() + 2200;
       toast('💨 节奏歪了，共振掉到 ' + state.reso + ' 层', 1800);
     }
@@ -1264,6 +1286,7 @@
     if (state.reso <= 0) return;
     if (Date.now() - (state.resoLastAt || 0) < RESO_DECAY_MS) return;
     state.reso -= 1;
+    if (window.DDFX) DDFX.sfx.resoDecay();
     state.resoLastAt = Date.now();
     toast('🌫 星核冷却，共振降到 ' + state.reso + ' 层', 1600);
     render();
@@ -1373,7 +1396,7 @@
       if (next.rep > rep) bits.push('声望 ' + fmt(next.rep - rep));
       if (needReso > 0) bits.push('共振 ' + Math.min(state.reso, needReso) + '/' + needReso);
       if (next.cap) bits.push('市值 ' + fmt(capital()) + '/' + fmt(next.cap));
-      if (next.fleet) bits.push('舰队 ' + fmt(fleetPower()) + '/' + fmt(next.fleet));
+      if (next.pet) bits.push('宠物 ' + fmt(petPower()) + '/' + fmt(next.pet));
       if (next.badge) bits.push('星章 ' + badges() + '/' + next.badge);
       el.rankNext.textContent =
         (state.rank === 0 ? '首个身份 ' : '下一站 ') + next.name + '：' + bits.join(' · ');
@@ -1386,10 +1409,11 @@
       (combo >= 2 ? '（连锁 +' + Math.round(chainBonus() * 100) + '%）' : '') +
       (crit > 0 ? ' · 暴击率 ' + Math.round(crit * 100) + '%' : '');
 
-    // 飞船状态
+    // 宠物状态
+    const petN = window.DDPets ? DDPets.ownedCount() : 0;
     const note = cps() > 0
-      ? '🛰 ' + scene.ships.length + ' 艘飞船 · 每秒 +' + fmt(cps())
-      : '🛰 飞船待命中，升级无人机让它采集';
+      ? '🐾 ' + petN + ' 只宠物在星球上刨星尘 · 每秒 +' + fmt(cps())
+      : (petN ? '🐾 ' + petN + ' 只宠物在打盹，升级后它们会更勤快' : '🐾 还没有宠物');
     if (note !== lastNote) {
       el.stageNote.textContent = note;
       lastNote = note;
@@ -1489,6 +1513,7 @@
     closePreview();
     applyWorld();
     scene.setWorld(0);
+    if (window.DDPets) DDPets.onWorldEnter();
     buildUpgrades();
     buildAssets();
     buildRanks();
@@ -1644,5 +1669,7 @@
     get clickPower() { return clickPower(); },
     get rep() { return totalRep(); }
   };
+  window.DD.scene = scene;
+  if (window.DDPets) window.DDPets.attach();
   if (window.DDSystems) window.DDSystems.attach();
 })();

@@ -5,9 +5,19 @@
 
   /* ========== 1. 后端地址（只有站长改这里，玩家看不到也改不了） ========== */
   const CFG = {
-    url: '',                    // 例如 https://abcdefgh.supabase.co
-    key: ''                     // 那个 anon public key（公开无害：表已锁死）
+    // Supabase 项目地址，例如：https://abcdefgh.supabase.co
+    url: 'https://bjeltfyiqwmnsbpdynmf.supabase.co',
+    // Supabase 的 anon / publishable key（公开的，可以放在前端）
+    key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJqZWx0ZnlpcXdtbnNicGR5bm1mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUyNDMyMTYsImV4cCI6MjExMDgxOTIxNn0.Jq_7aBcR-Zii6t3ve5JIXaLrQ3WzuZtMQe6HEm7wP5Y'
   };
+
+  // 用户在页面上填过的地址和 key 存在本机，下次打开直接用
+  try {
+    const sUrl = localStorage.getItem('aiweb.clicker.url');
+    const sKey = localStorage.getItem('aiweb.clicker.key');
+    if (sUrl) CFG.url = sUrl;
+    if (sKey) CFG.key = sKey;
+  } catch (e) {}
 
   const K = {
     token: 'aiweb.clicker.token',
@@ -43,19 +53,34 @@
     return Math.floor(n).toString();
   }
 
+  function hdr() {
+    return {
+      'Content-Type': 'application/json',
+      'apikey': CFG.key,
+      'Authorization': 'Bearer ' + CFG.key
+    };
+  }
+
+  // 调 Supabase 的 rpc 函数：POST /rest/v1/rpc/<函数名>，参数直接当 JSON body
   async function rpc(fn, body) {
-    if (!ready()) throw new Error('nosetup');
-    const r = await fetch(CFG.url.replace(/\/+$/, '') + '/rest/v1/rpc/' + fn, {
-      method: 'POST',
-      headers: {
-        'apikey': CFG.key,
-        'Authorization': 'Bearer ' + CFG.key,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body || {})
-    });
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    return r.json();
+    if (!ready()) return { ok: false, reason: 'nosetup' };
+    let r;
+    try {
+      r = await fetch(CFG.url.replace(/\/+$/, '') + '/rest/v1/rpc/' + fn, {
+        method: 'POST',
+        headers: hdr(),
+        body: JSON.stringify(body || {})
+      });
+    } catch (e) {
+      return { ok: false, reason: '连不上服务器' };
+    }
+    let data = null;
+    try { data = await r.json(); } catch (e) {}
+    if (!r.ok) {
+      // 函数内部报错时 Supabase 会回 { message, code }
+      return { ok: false, reason: (data && (data.message || data.hint || data.details)) || ('HTTP ' + r.status) };
+    }
+    return data;
   }
 
   /* ========== 2. 界面骨架 ========== */
@@ -145,16 +170,45 @@
     const refresh = $('lbRefresh');
     if (refresh) refresh.addEventListener('click', () => loadBoard(true));
 
+    const save = $('lbSave');
+    if (save) save.addEventListener('click', () => {
+      const u = (($('lbUrl') && $('lbUrl').value) || '').trim().replace(/\/+$/, '');
+      const k = (($('lbKey') && $('lbKey').value) || '').trim();
+      if (!/^https?:\/\/[^\s]+$/i.test(u)) {
+        status('地址要以 https:// 开头，例如 https://abc.supabase.co', 'bad');
+        return;
+      }
+      if (k.length < 40) {
+        status('key 没粘全，要整段复制（很长一串）', 'bad');
+        return;
+      }
+      CFG.url = u;
+      CFG.key = k;
+      try {
+        localStorage.setItem('aiweb.clicker.url', u);
+        localStorage.setItem('aiweb.clicker.key', k);
+      } catch (e) {}
+      if ($('lbSetup')) $('lbSetup').classList.add('hidden');
+      status('已连接，注册或登录吧', 'ok');
+      loadBoard();
+      if (tok()) { showMe(); resume(); } else { showAuth(); }
+    });
+
     if (!ready()) {
-      status('排行榜还没开通，等站长接上服务器', 'off');
+      if ($('lbSetup')) $('lbSetup').classList.remove('hidden');
+      status('先把 Supabase 地址和 key 填上', 'off');
       return;
+    }
+    if ($('lbSetup')) {
+      $('lbUrl') && ($('lbUrl').value = CFG.url);
+      $('lbKey') && ($('lbKey').value = CFG.key);
     }
     if (tok()) {
       showMe();
       resume();
     } else {
       showAuth();
-      status('没有账号就输入新名字和密码点注册', 'idle');
+      status('没有账号就输入名字和密码点注册', 'idle');
     }
     loadBoard();
   }
@@ -450,11 +504,7 @@
       fetch(CFG.url.replace(/\/+$/, '') + '/rest/v1/rpc/api_submit', {
         method: 'POST',
         keepalive: true,
-        headers: {
-          'apikey': CFG.key,
-          'Authorization': 'Bearer ' + CFG.key,
-          'Content-Type': 'application/json'
-        },
+        headers: hdr(),
         body: JSON.stringify({
           p_token: tok(),
           p_total: total,
