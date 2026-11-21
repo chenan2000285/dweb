@@ -1562,6 +1562,8 @@
     el.confetti.innerHTML = '';
     render();
     save();
+    // 云端一起清零，否则下次同步会把旧分数当成云端存档拉回来
+    if (window.Cloud && window.Cloud.reset) window.Cloud.reset();
     flashTip('已重置');
   });
 

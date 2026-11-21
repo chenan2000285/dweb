@@ -354,3 +354,26 @@ grant execute on function public.api_admin_judge(text, text, text)    to anon, a
 -- update public.users set role = 'admin' where username = '你的账号名';
 
 -- 完成。
+-- ============================================================
+-- 13. 重置进度：清空云端分数（游戏内点「重置」时调用）
+-- ============================================================
+create or replace function public.api_reset(p_token text)
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare
+  v_uid uuid;
+begin
+  v_uid := public._uid(p_token);
+  if v_uid is null then
+    return jsonb_build_object('ok', false, 'reason', 'need_login');
+  end if;
+
+  update public.users
+     set total = 0, clicks = 0, planets = 1, unverified = false,
+         hard_rejects = 0, verdict = null, last_seen = now(), updated_at = now()
+   where id = v_uid;
+
+  return jsonb_build_object('ok', true, 'total', 0, 'planets', 1);
+end $$;
+
+grant execute on function public.api_reset(text) to anon, authenticated;

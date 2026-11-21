@@ -89,6 +89,26 @@
   let tickAt = 0;
   let lastPushed = -1;
   let holdUntil = 0;   // 被服务器判定跳变后，暂停自动同步到这时间
+  const RESET_FLAG = 'aiweb.clicker.resetPending';
+
+  // 本地重置过、云端还没清：这期间不许拿云端总分回来覆盖
+  function resetPending() {
+    try { return localStorage.getItem(RESET_FLAG) === '1'; } catch (e) { return false; }
+  }
+
+  // 把云端也清零（重置进度用）；失败就留着标记，下次同步再试
+  async function clearCloud() {
+    if (!ready() || !tok()) return false;
+    const res = await rpc('api_reset', { p_token: tok() });
+    if (res && res.ok) {
+      try { localStorage.removeItem(RESET_FLAG); } catch (e) {}
+      lastPushed = 0;
+      status('云端已清空 · ' + fmt(0), 'ok');
+      return true;
+    }
+    status('云端还没清掉，下次同步再试', 'warn');
+    return false;
+  }
 
   function status(text, tone) {
     const el = $('lbStatus');
@@ -257,6 +277,8 @@
     busy = true;
     status('同步中…', 'busy');
 
+    if (resetPending()) await clearCloud();
+
     try {
       const res = await rpc('api_submit', {
         p_token: tok(),
@@ -276,6 +298,13 @@
   function accept(res, sentTotal) {
     const st = S();
     if (!res || typeof res.total === 'undefined') { status('服务器回包异常', 'bad'); return; }
+
+    if (res.ok && resetPending() && Number(res.total) > 1) {
+      // 刚重置：云端还是旧分数，不采纳，去清云端
+      lastPushed = sentTotal;
+      clearCloud();
+      return;
+    }
 
     if (res.ok) {
       lastPushed = sentTotal;
@@ -544,6 +573,12 @@
 
   window.Cloud = {
     sync: () => sync('manual'),
+    reset: async () => {
+      try { localStorage.setItem(RESET_FLAG, '1'); } catch (e) {}
+      lastPushed = 0;
+      holdUntil = 0;
+      return clearCloud();
+    },
     board: () => loadBoard(true),
     admin: () => loadAdmin(),
     get ready() { return ready(); },
