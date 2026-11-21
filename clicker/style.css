@@ -1505,3 +1505,107 @@ button:disabled { opacity: .4; }
   .tab { font-size: 12px; padding: 7px 3px; }
   .sys-head b { font-size: 14px; }
 }
+
+/* ===== 排行榜 / 云同步 ===== */
+.lb-name-row {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0 8px;
+}
+
+.lb-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 1px solid rgba(255, 255, 255, .12);
+  background: rgba(255, 255, 255, .05);
+  color: #e8dcc8;
+  border-radius: 12px;
+  padding: 11px 13px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+}
+
+.lb-input:focus {
+  border-color: var(--acc);
+  box-shadow: 0 0 0 3px var(--acc-soft);
+}
+
+.lb-name-row .ghost { flex: 0 0 auto; white-space: nowrap; }
+
+.ghost.wide {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+}
+
+#lbStatus[data-tone="ok"]   { color: #8fd6a4; }
+#lbStatus[data-tone="warn"] { color: #e2c07a; }
+#lbStatus[data-tone="bad"]  { color: #e08a80; }
+#lbStatus[data-tone="busy"] { color: var(--acc2); }
+#lbStatus[data-tone="off"]  { color: rgba(214, 201, 176, .5); }
+
+.lb-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+}
+
+.lb-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .04);
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.lb-row.me {
+  background: var(--acc-soft);
+  border: 1px solid var(--acc);
+}
+
+.lb-row.suspect { opacity: .55; }
+
+.lb-pos {
+  flex: 0 0 34px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--acc2);
+  font-variant-numeric: tabular-nums;
+}
+
+.lb-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #e8dcc8;
+}
+
+.lb-score {
+  flex: 0 0 auto;
+  font-size: 12px;
+  color: var(--acc2);
+  font-variant-numeric: tabular-nums;
+}
+
+.lb-setup {
+  margin: 12px 0 4px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .04);
+  border: 1px solid rgba(255, 255, 255, .08);
+}
+
+.lb-setup.hidden { display: none; }
+
+.lb-full {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 8px;
+}

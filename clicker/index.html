@@ -98,6 +98,7 @@
     <button class="tab" data-tab="stock" type="button">股市</button>
     <button class="tab" data-tab="fleet" type="button">舰队</button>
     <button class="tab" data-tab="play" type="button">玩法</button>
+    <button class="tab" data-tab="leader" type="button">排行</button>
   </nav>
 
   <section class="panel active" id="panel-up">
@@ -166,6 +167,24 @@
     <h2>挂机</h2>
     <div class="idle-card" id="idleCard"></div>
     <div id="idleClaim"></div>
+  </section>
+
+  <section class="panel" id="panel-leader">
+    <h2>星际排行</h2>
+    <p class="panel-tip">分数存在服务器上，本地改成多少都不算数——下次上传会被拒收，然后回滚成服务器的真值。上传时间随你，关页面时会自动存一次。</p>
+    <div id="lbSetup" class="lb-setup hidden">
+      <p class="panel-tip small">第一次用：把 Supabase 的 Project URL 和 anon key 粘进来。只存在这台手机上。</p>
+      <input id="lbUrl" class="lb-input lb-full" placeholder="https://xxxx.supabase.co" autocomplete="off">
+      <input id="lbKey" class="lb-input lb-full" placeholder="anon public key" autocomplete="off">
+      <button id="lbSave" class="ghost wide" type="button">保存并连接</button>
+    </div>
+    <div class="lb-name-row">
+      <input id="lbName" class="lb-input" maxlength="16" placeholder="你的名字" autocomplete="off">
+      <button id="lbSync" class="ghost" type="button">立即上传</button>
+    </div>
+    <p class="panel-tip small" id="lbStatus" data-tone="idle">未配置云端</p>
+    <ol id="lbList" class="lb-list"></ol>
+    <button id="lbRefresh" class="ghost wide" type="button">刷新排行榜</button>
   </section>
 
   <footer class="bottom">
@@ -269,5 +288,6 @@
 <script src="game.js"></script>
 <script src="systems.js"></script>
 <script src="fx.js"></script>
+<script src="cloud.js"></script>
 </body>
 </html>

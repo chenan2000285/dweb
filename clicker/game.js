@@ -824,6 +824,7 @@
     stock: $('panel-stock'),
     fleet: $('panel-fleet'),
     play: $('panel-play'),
+    leader: $('panel-leader'),
   };
 
   function switchTab(name) {
