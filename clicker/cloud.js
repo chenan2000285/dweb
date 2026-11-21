@@ -189,6 +189,8 @@
         adopt(sv);
         status('已恢复云端存档 · ' + fmt(sv), 'ok');
         toast('☁️ 已载入云端存档');
+      } else if (res.unverified) {
+        status('已同步 · 本次涨幅较大，标为未验证', 'warn');
       } else {
         status('已同步 · 云端 ' + fmt(sv), 'ok');
       }
@@ -201,9 +203,6 @@
       adopt(sv);
       status('分数异常，已回滚到云端 ' + fmt(sv), 'bad');
       toast('⚠️ 检测到异常分数，已回滚到云端记录');
-    } else if (res.reason === 'fast') {
-      // 轻微超速：这次不记分，本地保留，下一次老实上传就能收
-      status('本次上传过快，未记入排行', 'warn');
     } else {
       status('上传被拒绝：' + (res.reason || '未知'), 'bad');
     }
@@ -273,6 +272,15 @@
       const sc = document.createElement('span');
       sc.className = 'lb-score';
       sc.textContent = fmt(r.total);
+
+      // 未经验证的分数单独标出来：不打假，但也不装作是真的
+      if (r.imported || r.unverified) {
+        const tag = document.createElement('span');
+        tag.className = 'lb-tag';
+        tag.textContent = r.imported ? '离线导入' : '未验证';
+        tag.title = '这个分数没能被服务器逐步核对';
+        nm.appendChild(tag);
+      }
 
       li.append(pos, nm, sc);
       list.appendChild(li);
