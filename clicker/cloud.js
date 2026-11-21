@@ -282,7 +282,12 @@
       const sv = Number(res.total);
       if (sv > (st.total || 0) + 1) {
         st.total = sv;
-        // 星尘是玩家自己的钱包，云端总分只往上对齐，绝不下砍
+        // 星尘是玩家自己的钱包，云端总分只往上对齐，绝不下砍；
+        // 但如果本地星尘几乎见底、云端累计却很高，说明本地被回滚过，按云端补回来
+        if ((st.dust || 0) < sv * 0.01) {
+          st.dust = sv;
+          toast('☁️ 已按云端进度补回星尘');
+        }
         if (window.DD) { try { window.DD.save(); window.DD.render(); } catch (e) {} }
         status('已恢复云端存档 · ' + fmt(sv), 'ok');
         toast('☁️ 已载入云端存档');
