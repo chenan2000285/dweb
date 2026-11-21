@@ -173,13 +173,13 @@ begin
                               'hard_rejects', r.hard_rejects);
   end if;
 
-  -- 一次最多涨 20 倍，或绝对量 1 万以内（新手期倍数没意义）
-  v_allow := greatest(r.total * 20, 1e4);
+  -- 一次最多涨 100 倍，或绝对量 10 万以内（新手期倍数没意义；宠物探索一次带很多，放宽）
+  v_allow := greatest(r.total * 100, 1e5);
   v_delta := p_total - r.total;
 
   if v_delta > v_allow then
     -- 离谱：拒收，本地回滚成服务器值
-    if v_delta > v_allow * 100 then
+    if v_delta > v_allow * 1000 then
       update public.users
          set hard_rejects = hard_rejects + 1, updated_at = now(), last_seen = now()
        where id = v_uid;

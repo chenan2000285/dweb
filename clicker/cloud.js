@@ -88,6 +88,7 @@
   let busy = false;
   let tickAt = 0;
   let lastPushed = -1;
+  let holdUntil = 0;   // 被服务器判定跳变后，暂停自动同步到这时间
 
   function status(text, tone) {
     const el = $('lbStatus');
@@ -250,6 +251,7 @@
     if (!ready()) { status('排行榜还没开通', 'off'); return; }
     if (!tok()) { status('登录后才会保存进度', 'idle'); return; }
     if (busy) return;
+    if (reason !== 'manual' && Date.now() < holdUntil) return;
 
     const total = Math.floor(st.total || 0);
     busy = true;
@@ -280,7 +282,7 @@
       const sv = Number(res.total);
       if (sv > (st.total || 0) + 1) {
         st.total = sv;
-        if (st.dust > sv) st.dust = sv;
+        // 星尘是玩家自己的钱包，云端总分只往上对齐，绝不下砍
         if (window.DD) { try { window.DD.save(); window.DD.render(); } catch (e) {} }
         status('已恢复云端存档 · ' + fmt(sv), 'ok');
         toast('☁️ 已载入云端存档');
@@ -296,12 +298,10 @@
     if (res.reason === 'need_login') { setTok(''); showAuth(); status('请先登录再上传', 'off'); return; }
 
     if (res.severity === 'hard') {
-      const sv = Number(res.total) || 0;
-      st.total = sv;
-      if (st.dust > sv) st.dust = sv;
-      if (window.DD) { try { window.DD.save(); window.DD.render(); } catch (e) {} }
-      status('分数异常，已回滚到云端 ' + fmt(sv), 'bad');
-      toast('⚠️ 检测到异常分数，已回滚到云端记录');
+      // 只影响排行榜名次，绝不碰本地星尘和等级；暂停一会儿自动同步，别一直撞同一堵墙
+      holdUntil = Date.now() + 15 * 60 * 1000;
+      status('云端认为涨得太快，先搁置同步（星尘没动）', 'warn');
+      toast('☁️ 云端觉得涨太快，稍后再同步，星尘不受影响');
     } else {
       status('上传被拒绝：' + (res.reason || '未知'), 'bad');
     }
@@ -489,6 +489,7 @@
     const st = S();
     if (!st || !ready() || !tok()) return;
     const now = Date.now();
+    if (now < holdUntil) return;
     if (now - tickAt < AUTO_EVERY) return;
     tickAt = now;
     if (Math.floor(st.total || 0) === lastPushed) return;

@@ -8,6 +8,13 @@
   /* ===================== 1. 配置 ===================== */
 
   const SAVE_KEY = 'aiweb.clicker.v4';
+  const SAVE_BAK = 'aiweb.clicker.v4.bak';        // 上一次的完整存档，主存档坏了能退回去
+  const SAVE_BAD = 'aiweb.clicker.v4.broken';     // 解析失败的原始文本，留着人工抢救
+  // 读档按顺序找，新版本永远不要改 SAVE_KEY，只往这个列表前面加
+  const SAVE_KEYS = [
+    'aiweb.clicker.v6', 'aiweb.clicker.v5', 'aiweb.clicker.v4',
+    'aiweb.clicker.v3', 'aiweb.clicker.v2', 'aiweb.clicker.v1',
+  ];
   const WX_KEY = 'aiweb.clicker.wx.v1';
   const CITY_KEY = 'aiweb.clicker.city.v1';
   const LOC_KEY = 'aiweb.clicker.loc.v1';
@@ -462,11 +469,19 @@
     tipTimer = setTimeout(() => { el.tip.textContent = '进度自动保存'; }, ms);
   }
 
+  let bakAt = 0;
+
   function save(silent = true) {
     if (saveBroken) return;
     state.lastSave = Date.now();
     try {
-      localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+      const next = JSON.stringify(state);
+      const prev = localStorage.getItem(SAVE_KEY);
+      // 每 5 分钟把上一版完整存档留一份备份；写坏了、以后升级改坏了都能退回去
+      if (prev && prev !== next && Date.now() - bakAt > 5 * 60 * 1000 && prev.length > 64) {
+        try { localStorage.setItem(SAVE_BAK, prev); bakAt = Date.now(); } catch (e2) {}
+      }
+      localStorage.setItem(SAVE_KEY, next);
       if (!silent) flashTip('已保存');
     } catch (e) {
       saveBroken = true;
@@ -485,16 +500,40 @@
     state.worldDone = state.rank >= ranks.length;
   }
 
+  // 找回存档：主键 → 旧版键 → 5 分钟前的备份；解析失败的原文另存一份，绝不直接清档
+  function readSave() {
+    let bad = null;
+    for (const k of SAVE_KEYS) {
+      let raw = null;
+      try { raw = localStorage.getItem(k); } catch (e) { return null; }
+      if (!raw) continue;
+      try {
+        const d = JSON.parse(raw);
+        if (d && typeof d === 'object') {
+          if (k !== SAVE_KEY) flashTip('已迁移旧存档', 3000);
+          return d;
+        }
+      } catch (e) { bad = bad || { k, raw }; }
+    }
+    if (bad) {
+      try { localStorage.setItem(SAVE_BAD, bad.raw); } catch (e) {}
+      flashTip('主存档读不出来，正在找备份', 3000);
+    }
+    for (const k of [SAVE_BAK]) {
+      try {
+        const raw = localStorage.getItem(k);
+        if (!raw) continue;
+        const d = JSON.parse(raw);
+        if (d && typeof d === 'object') { flashTip('已用备份存档恢复', 3000); return d; }
+      } catch (e) {}
+    }
+    return null;
+  }
+
   function load() {
     try {
-      let raw = localStorage.getItem(SAVE_KEY);
-      if (!raw) {
-        // 从 v4 存档迁移：数值会按新经济重算，升级/资产只保留本星球仍存在的项目
-        raw = localStorage.getItem('aiweb.clicker.v1');
-        if (raw) flashTip('已迁移旧存档', 3000);
-      }
-      if (!raw) return;
-      const d = JSON.parse(raw) || {};
+      const d = readSave();
+      if (!d) return;
       const base = newState();
 
       state = Object.assign(base, {
