@@ -1621,3 +1621,85 @@ button:disabled { opacity: .4; }
   box-sizing: border-box;
   margin-bottom: 8px;
 }
+
+/* ===== 账号 / 后台 ===== */
+.au-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+.au-row button { flex: 1; }
+
+.lb-me {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 11px 13px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .05);
+  border: 1px solid rgba(255, 255, 255, .1);
+  font-size: 13px;
+  color: var(--acc2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lb-tag.warn {
+  color: #e2c07a;
+  border-color: rgba(226, 192, 122, .5);
+  background: rgba(226, 192, 122, .12);
+}
+
+.admin-box {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, .1);
+}
+.admin-box.hidden { display: none; }
+.admin-box h3 {
+  font-size: 15px;
+  margin: 0 0 6px;
+  color: var(--acc2);
+}
+
+.admin-row {
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .04);
+  border: 1px solid rgba(255, 255, 255, .07);
+}
+.admin-row.red {
+  border-color: rgba(224, 110, 96, .6);
+  background: rgba(224, 110, 96, .1);
+}
+
+.admin-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+}
+.admin-head b { color: #e8dcc8; }
+.admin-head .small { color: #9a8f7d; font-size: 11px; }
+
+.admin-why {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #e08a80;
+}
+.admin-why.ok { color: #8fd6a4; }
+
+.admin-acts {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.ghost.tiny {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  font-size: 11px;
+  white-space: nowrap;
+}

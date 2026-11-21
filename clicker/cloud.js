@@ -1,50 +1,33 @@
-// 点点星球 · 云同步 + 排行榜 + 防作弊（客户端）
-// 原则：分数属于服务器，本地只是一个缓存。
-// 本地改的分数，下一次上传会被服务器拒收并被真值覆盖。
+// 点点星球 · 账号 + 云同步 + 排行榜 + 管理员后台（客户端）
+// 原则：分数属于服务器，本地只是缓存；表对前端完全关闭，只能走接口函数。
 (() => {
   'use strict';
 
-  /* ========== 1. 先填这两个值（Supabase 控制台 → Project Settings → API） ========== */
+  /* ========== 1. 后端地址（只有站长改这里，玩家看不到也改不了） ========== */
   const CFG = {
-    url: '',   // 例如 https://abcdefgh.supabase.co
-    key: ''    // anon public 那一串
+    url: '',                    // 例如 https://abcdefgh.supabase.co
+    key: ''                     // 那个 anon public key（公开无害：表已锁死）
   };
 
-  /* ========== 2. 基础设施 ========== */
   const K = {
-    cfg:  'aiweb.clicker.cloud',
-    pid:  'aiweb.clicker.pid',
-    name: 'aiweb.clicker.name'
+    token: 'aiweb.clicker.token',
+    name:  'aiweb.clicker.name'
   };
 
-  function cfg() {
-    const c = Object.assign({}, CFG);
-    try {
-      const saved = JSON.parse(localStorage.getItem(K.cfg) || '{}');
-      if (saved.url) c.url = saved.url;
-      if (saved.key) c.key = saved.key;
-    } catch (e) {}
-    return c;
-  }
-  const ready = () => {
-    const c = cfg();
-    return !!(c.url && c.key);
-  };
+  const $ = (id) => document.getElementById(id);
+  const ready = () => !!(CFG.url && CFG.key);
 
-  function pid() {
-    let v = '';
-    try { v = localStorage.getItem(K.pid) || ''; } catch (e) {}
-    if (v) return v;
-    v = 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 12);
-    try { localStorage.setItem(K.pid, v); } catch (e) {}
-    return v;
+  function tok() {
+    try { return localStorage.getItem(K.token) || ''; } catch (e) { return ''; }
   }
-
+  function setTok(v) {
+    try { v ? localStorage.setItem(K.token, v) : localStorage.removeItem(K.token); } catch (e) {}
+  }
   function myName() {
     try { return localStorage.getItem(K.name) || ''; } catch (e) { return ''; }
   }
   function setName(v) {
-    try { localStorage.setItem(K.name, v); } catch (e) {}
+    try { localStorage.setItem(K.name, v || ''); } catch (e) {}
   }
 
   const S = () => (window.DD ? window.DD.state : null);
@@ -61,13 +44,12 @@
   }
 
   async function rpc(fn, body) {
-    const c = cfg();
-    if (!c.url || !c.key) throw new Error('nosetup');
-    const r = await fetch(c.url.replace(/\/+$/, '') + '/rest/v1/rpc/' + fn, {
+    if (!ready()) throw new Error('nosetup');
+    const r = await fetch(CFG.url.replace(/\/+$/, '') + '/rest/v1/rpc/' + fn, {
       method: 'POST',
       headers: {
-        'apikey': c.key,
-        'Authorization': 'Bearer ' + c.key,
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(body || {})
@@ -76,58 +58,11 @@
     return r.json();
   }
 
-  /* ========== 3. 界面 ========== */
-  const $ = (id) => document.getElementById(id);
-  let ui = null;
-
-  function buildUI() {
-    const list = $('lbList');
-    if (!list) return;
-
-    const nameInput = $('lbName');
-    if (nameInput) {
-      nameInput.value = myName();
-      nameInput.addEventListener('change', () => {
-        setName(nameInput.value.trim().slice(0, 16));
-        sync('name');
-      });
-      nameInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') { nameInput.blur(); sync('name'); }
-      });
-    }
-
-    const syncBtn = $('lbSync');
-    if (syncBtn) syncBtn.addEventListener('click', () => sync('manual'));
-
-    const refresh = $('lbRefresh');
-    if (refresh) refresh.addEventListener('click', () => loadBoard(true));
-
-    ui = { list, status: $('lbStatus'), nameInput };
-
-    const saveBtn = $('lbSave');
-    if (saveBtn) {
-      saveBtn.addEventListener('click', () => {
-        const u = ($('lbUrl') && $('lbUrl').value || '').trim().replace(/\/+$/, '');
-        const k = ($('lbKey') && $('lbKey').value || '').trim();
-        if (!/^https?:\/\//.test(u) || k.length < 20) {
-          status('地址或 key 看起来不对', 'bad');
-          return;
-        }
-        try { localStorage.setItem(K.cfg, JSON.stringify({ url: u, key: k })); } catch (e) {}
-        refreshSetup();
-        status('已连接，正在上传…', 'busy');
-        sync('manual');
-      });
-    }
-    refreshSetup();
-
-    status(ready() ? '等待同步' : '未配置云端', ready() ? 'idle' : 'off');
-  }
-
-  function refreshSetup() {
-    const box = $('lbSetup');
-    if (box) box.classList.toggle('hidden', ready());
-  }
+  /* ========== 2. 界面骨架 ========== */
+  let role = '';       // '' / 'user' / 'admin'
+  let busy = false;
+  let tickAt = 0;
+  let lastPushed = -1;
 
   function status(text, tone) {
     const el = $('lbStatus');
@@ -145,15 +80,121 @@
     setTimeout(() => t.classList.remove('show'), 2600);
   }
 
-  /* ========== 4. 核心：把分数交给服务器，然后听它的 ========== */
-  let busy = false;
-  let tickAt = 0;
-  let lastPushed = -1;
+  function showAuth() {
+    $('authBox') && $('authBox').classList.remove('hidden');
+    $('meBox')   && $('meBox').classList.add('hidden');
+    $('adminBox')&& $('adminBox').classList.add('hidden');
+    role = '';
+  }
 
+  function showMe(name) {
+    $('authBox') && $('authBox').classList.add('hidden');
+    $('meBox')   && $('meBox').classList.remove('hidden');
+    const el = $('meName');
+    if (el) el.textContent = name || myName() || '—';
+    const out = $('auOut');
+    if (out) out.classList.toggle('hidden', !tok());
+  }
+
+  function buildUI() {
+    if (!$('lbList')) return;
+
+    const doAuth = async (kind) => {
+      const u = ($('auName') && $('auName').value || '').trim();
+      const p = ($('auPass') && $('auPass').value || '');
+      if (!u || !p) { status('账号和密码都要填', 'bad'); return; }
+      status(kind === 'reg' ? '注册中…' : '登录中…', 'busy');
+      try {
+        const res = await rpc(kind === 'reg' ? 'api_register' : 'api_login', { p_user: u, p_pass: p });
+        if (!res || !res.ok) { status((res && res.reason) || '失败', 'bad'); return; }
+        setTok(res.token);
+        setName(res.name);
+        role = res.role || 'user';
+        $('auPass').value = '';
+        showMe(res.name);
+        status('已登录 · ' + res.name, 'ok');
+        toast(kind === 'reg' ? '☁️ 注册好了，进度会自动上传' : '☁️ 欢迎回来');
+        if (role === 'admin') $('adminBox') && $('adminBox').classList.remove('hidden');
+        applyServer(res);
+        loadBoard();
+        if (role === 'admin') loadAdmin();
+      } catch (e) {
+        status('连不上服务器，稍后再试', 'off');
+      }
+    };
+
+    const loginBtn = $('auLogin');
+    if (loginBtn) loginBtn.addEventListener('click', () => doAuth('login'));
+    const regBtn = $('auReg');
+    if (regBtn) regBtn.addEventListener('click', () => doAuth('reg'));
+    const pass = $('auPass');
+    if (pass) pass.addEventListener('keydown', (e) => { if (e.key === 'Enter') doAuth('login'); });
+
+    const out = $('auOut');
+    if (out) out.addEventListener('click', async () => {
+      try { await rpc('api_logout', { p_token: tok() }); } catch (e) {}
+      setTok('');
+      setName('');
+      showAuth();
+      status('已退出', 'idle');
+    });
+
+    const syncBtn = $('lbSync');
+    if (syncBtn) syncBtn.addEventListener('click', () => sync('manual'));
+
+    const refresh = $('lbRefresh');
+    if (refresh) refresh.addEventListener('click', () => loadBoard(true));
+
+    if (!ready()) {
+      status('排行榜还没开通，等站长接上服务器', 'off');
+      return;
+    }
+    if (tok()) {
+      showMe();
+      resume();
+    } else {
+      showAuth();
+      status('没有账号就输入新名字和密码点注册', 'idle');
+    }
+    loadBoard();
+  }
+
+  /* 回到页面：拿令牌换身份 */
+  async function resume() {
+    try {
+      const me = await rpc('api_me', { p_token: tok() });
+      if (!me || !me.ok) { setTok(''); showAuth(); status('登录已过期，请重新登录', 'off'); return; }
+      setName(me.name);
+      role = me.role || 'user';
+      showMe(me.name);
+      status('云端 ' + fmt(me.total), 'ok');
+      if (role === 'admin') { $('adminBox') && $('adminBox').classList.remove('hidden'); loadAdmin(); }
+      applyServer(me);
+      sync('boot');
+    } catch (e) { status('连不上服务器，稍后自动重试', 'off'); }
+  }
+
+  /* 服务器解锁了新星球：本地直接跳过去 */
+  function applyServer(res) {
+    const st = S();
+    if (!st || !res) return;
+    const p = Number(res.planets) || 1;
+    if (p > 1 && (st.world || 0) < p - 1) {
+      const before = st.world || 0;
+      st.world = p - 1;
+      if (window.DD) {
+        try { window.DD.save(); window.DD.render(); } catch (e) {}
+      }
+      if ((st.world || 0) > before) toast('🪐 管理员给你解锁了第 ' + (st.world + 1) + ' 颗星球');
+    }
+  }
+
+  /* ========== 3. 上传分数 ========== */
   async function sync(reason) {
     const st = S();
     if (!st) return;
-    if (!ready()) { status('未配置云端', 'off'); return; }
+    if (!ready()) { status('排行榜还没开通', 'off'); return; }
+    if (!tok()) { status('登录后才会保存进度', 'idle'); return; }
     if (busy) return;
 
     const total = Math.floor(st.total || 0);
@@ -161,11 +202,11 @@
     status('同步中…', 'busy');
 
     try {
-      const res = await rpc('submit_progress', {
-        p_id: pid(),
-        p_name: myName() || '无名星际旅人',
+      const res = await rpc('api_submit', {
+        p_token: tok(),
         p_total: total,
-        p_clicks: Math.floor(st.clicks || 0)
+        p_clicks: Math.floor(st.clicks || 0),
+        p_planet: Math.floor((st.world || 0) + 1)
       });
       accept(res, total);
     } catch (e) {
@@ -178,29 +219,33 @@
 
   function accept(res, sentTotal) {
     const st = S();
-    const sv = Number(res && res.total);
-    if (!isFinite(sv)) { status('服务器回包异常', 'bad'); return; }
+    if (!res || typeof res.total === 'undefined') { status('服务器回包异常', 'bad'); return; }
 
-    // 收下了
     if (res.ok) {
       lastPushed = sentTotal;
-      if (sv > st.total + 1) {
-        // 服务器比本地多：换手机、清了缓存、或者刚才被回滚过 → 以服务器为准
-        adopt(sv);
+      const sv = Number(res.total);
+      if (sv > (st.total || 0) + 1) {
+        st.total = sv;
+        if (st.dust > sv) st.dust = sv;
+        if (window.DD) { try { window.DD.save(); window.DD.render(); } catch (e) {} }
         status('已恢复云端存档 · ' + fmt(sv), 'ok');
         toast('☁️ 已载入云端存档');
       } else if (res.unverified) {
-        status('已同步 · 本次涨幅较大，标为未验证', 'warn');
+        status('已同步 · 本次涨幅较大，后台会看到标记', 'warn');
       } else {
         status('已同步 · 云端 ' + fmt(sv), 'ok');
       }
+      applyServer(res);
       return;
     }
 
-    // 被拒了
+    if (res.reason === 'need_login') { setTok(''); showAuth(); status('请先登录再上传', 'off'); return; }
+
     if (res.severity === 'hard') {
-      // 服务器直接替换本地：这就是"你本地改了，服务器不认"
-      adopt(sv);
+      const sv = Number(res.total) || 0;
+      st.total = sv;
+      if (st.dust > sv) st.dust = sv;
+      if (window.DD) { try { window.DD.save(); window.DD.render(); } catch (e) {} }
       status('分数异常，已回滚到云端 ' + fmt(sv), 'bad');
       toast('⚠️ 检测到异常分数，已回滚到云端记录');
     } else {
@@ -208,33 +253,17 @@
     }
   }
 
-  // 以服务器的值为准，覆盖本地
-  function adopt(v) {
-    const st = S();
-    if (!st) return;
-    if (st.total > v) {
-      st.total = v;
-      if (st.dust > v) st.dust = v;
-    } else {
-      st.total = v;
-    }
-    if (window.DD) {
-      try { window.DD.save(); window.DD.render(); } catch (e) {}
-    }
-  }
-
-  /* ========== 5. 排行榜 ========== */
+  /* ========== 4. 排行榜 ========== */
   let boardLoading = false;
 
   async function loadBoard(showTip) {
-    if (!ready()) {
-      renderBoard([], '还没接上服务器，先去 supabase.sql 那一步建好后端');
-      return;
-    }
+    const list = $('lbList');
+    if (!list) return;
+    if (!ready()) { renderBoard([], '排行榜还没开通'); return; }
     if (boardLoading) return;
     boardLoading = true;
     try {
-      const rows = await rpc('leaderboard', { p_limit: 50 });
+      const rows = await rpc('api_board', { p_limit: 50 });
       renderBoard(Array.isArray(rows) ? rows : []);
     } catch (e) {
       renderBoard([], '排行榜加载失败，检查网络');
@@ -256,10 +285,10 @@
       return;
     }
 
-    const me = pid();
+    const me = (myName() || '').toLowerCase();
     rows.forEach((r) => {
       const li = document.createElement('li');
-      li.className = 'lb-row' + (r.id === me ? ' me' : '') + (Number(r.flagged) > 0 ? ' suspect' : '');
+      li.className = 'lb-row' + (String(r.name || '').toLowerCase() === me ? ' me' : '');
 
       const pos = document.createElement('span');
       pos.className = 'lb-pos';
@@ -267,63 +296,170 @@
 
       const nm = document.createElement('span');
       nm.className = 'lb-name';
-      nm.textContent = r.name || '无名星际旅人';
+      nm.textContent = r.name || '无名旅人';
+      if (r.planets) {
+        const pl = document.createElement('span');
+        pl.className = 'lb-tag';
+        pl.textContent = 'P' + r.planets;
+        nm.appendChild(pl);
+      }
+      if (r.suspicious) {
+        const tag = document.createElement('span');
+        tag.className = 'lb-tag warn';
+        tag.textContent = '待查';
+        tag.title = '这个分数有过异常上传，站长还没判';
+        nm.appendChild(tag);
+      }
 
       const sc = document.createElement('span');
       sc.className = 'lb-score';
       sc.textContent = fmt(r.total);
-
-      // 未经验证的分数单独标出来：不打假，但也不装作是真的
-      if (r.imported || r.unverified) {
-        const tag = document.createElement('span');
-        tag.className = 'lb-tag';
-        tag.textContent = r.imported ? '离线导入' : '未验证';
-        tag.title = '这个分数没能被服务器逐步核对';
-        nm.appendChild(tag);
-      }
 
       li.append(pos, nm, sc);
       list.appendChild(li);
     });
   }
 
-  /* ========== 6. 什么时候上传：你说什么时候就什么时候 ========== */
-  const AUTO_EVERY = 20000;   // 有变化就 20 秒补一次
-  const IDLE_LIMIT = 0.5;     // 分数没动就不传
+  /* ========== 5. 管理员后台 ========== */
+  async function loadAdmin() {
+    const box = $('adminList');
+    if (!box) return;
+    box.innerHTML = '<p class="panel-tip small">读取中…</p>';
+    try {
+      const res = await rpc('api_admin_list', { p_token: tok() });
+      if (!res || !res.ok) { box.innerHTML = ''; return; }
+      renderAdmin(res.rows || []);
+    } catch (e) {
+      box.innerHTML = '<p class="panel-tip small">后台加载失败</p>';
+    }
+  }
+
+  function renderAdmin(rows) {
+    const box = $('adminList');
+    if (!box) return;
+    box.innerHTML = '';
+    if (!rows.length) {
+      box.innerHTML = '<p class="panel-tip small">还没有用户</p>';
+      return;
+    }
+
+    rows.forEach((u) => {
+      const row = document.createElement('div');
+      row.className = 'admin-row' + (u.red ? ' red' : '');
+
+      const head = document.createElement('div');
+      head.className = 'admin-head';
+      const nm = document.createElement('b');
+      nm.textContent = u.name + (u.role === 'admin' ? '（管理员）' : '');
+      const sum = document.createElement('span');
+      sum.className = 'small';
+      sum.textContent = fmt(u.total) + ' · P' + u.planets + ' · ' + u.age_hours + ' 小时';
+      head.append(nm, sum);
+
+      row.appendChild(head);
+
+      if (u.why) {
+        const why = document.createElement('div');
+        why.className = 'admin-why';
+        why.textContent = '⚠ ' + u.why;
+        row.appendChild(why);
+      }
+      if (u.verdict === 'ok') {
+        const v = document.createElement('div');
+        v.className = 'admin-why ok';
+        v.textContent = '✓ 已判为真玩家';
+        row.appendChild(v);
+      }
+      if (u.verdict === 'cheat') {
+        const v = document.createElement('div');
+        v.className = 'admin-why';
+        v.textContent = '✕ 已判假，不上榜';
+        row.appendChild(v);
+      }
+
+      const acts = document.createElement('div');
+      acts.className = 'admin-acts';
+
+      const bGrant = document.createElement('button');
+      bGrant.className = 'ghost tiny';
+      bGrant.textContent = '+星尘';
+      bGrant.addEventListener('click', async () => {
+        const v = window.prompt('给「' + u.name + '」加多少星尘？（1 – 10000 亿）', '1000000');
+        if (v === null) return;
+        const n = Number(v.replace(/[,，\s]/g, ''));
+        if (!isFinite(n) || n <= 0) { toast('数字不对'); return; }
+        await adminCall('api_admin_grant', { p_name: u.name, p_amount: n }, '已加 ' + fmt(n));
+      });
+
+      const bUnlock = document.createElement('button');
+      bUnlock.className = 'ghost tiny';
+      bUnlock.textContent = '解锁星球';
+      bUnlock.addEventListener('click', async () => {
+        const v = window.prompt('给「' + u.name + '」解锁到第几颗星球？（1 – 6）', String(Math.min(6, (u.planets || 1) + 1)));
+        if (v === null) return;
+        const p = Math.floor(Number(v));
+        if (!(p >= 1 && p <= 6)) { toast('只能是 1 到 6'); return; }
+        await adminCall('api_admin_unlock', { p_name: u.name, p_planets: p }, '已解锁到第 ' + p + ' 颗');
+      });
+
+      const bOk = document.createElement('button');
+      bOk.className = 'ghost tiny';
+      bOk.textContent = '判真';
+      bOk.addEventListener('click', () => adminCall('api_admin_judge', { p_name: u.name, p_verdict: 'ok' }, '已判为真'));
+
+      const bBad = document.createElement('button');
+      bBad.className = 'ghost tiny';
+      bBad.textContent = '判假';
+      bBad.addEventListener('click', () => adminCall('api_admin_judge', { p_name: u.name, p_verdict: 'cheat' }, '已判假，掉榜'));
+
+      acts.append(bGrant, bUnlock, bOk, bBad);
+      row.appendChild(acts);
+      box.appendChild(row);
+    });
+  }
+
+  async function adminCall(fn, body, okTip) {
+    try {
+      const res = await rpc(fn, Object.assign({ p_token: tok() }, body));
+      if (!res || !res.ok) { toast((res && res.reason) || '操作失败'); return; }
+      toast(okTip || '好了');
+      loadAdmin();
+      loadBoard();
+    } catch (e) { toast('连不上服务器'); }
+  }
+
+  /* ========== 6. 自动上传 ========== */
+  const AUTO_EVERY = 20000;
 
   function tick() {
     const st = S();
-    if (!st || !ready()) return;
+    if (!st || !ready() || !tok()) return;
     const now = Date.now();
     if (now - tickAt < AUTO_EVERY) return;
     tickAt = now;
-
-    const total = Math.floor(st.total || 0);
-    if (total === lastPushed) return;
+    if (Math.floor(st.total || 0) === lastPushed) return;
     sync('auto');
   }
 
   function flush() {
     const st = S();
-    if (!st || !ready()) return;
+    if (!st || !ready() || !tok()) return;
     const total = Math.floor(st.total || 0);
     if (total === lastPushed) return;
-    // 关页面/切后台也要发出去，keepalive 保证请求不被中断
-    const c = cfg();
     try {
-      fetch(c.url.replace(/\/+$/, '') + '/rest/v1/rpc/submit_progress', {
+      fetch(CFG.url.replace(/\/+$/, '') + '/rest/v1/rpc/api_submit', {
         method: 'POST',
         keepalive: true,
         headers: {
-          'apikey': c.key,
-          'Authorization': 'Bearer ' + c.key,
+          'apikey': CFG.key,
+          'Authorization': 'Bearer ' + CFG.key,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          p_id: pid(),
-          p_name: myName() || '无名星际旅人',
+          p_token: tok(),
           p_total: total,
-          p_clicks: Math.floor(st.clicks || 0)
+          p_clicks: Math.floor(st.clicks || 0),
+          p_planet: Math.floor((st.world || 0) + 1)
         })
       });
       lastPushed = total;
@@ -334,35 +470,28 @@
   function boot() {
     buildUI();
 
-    // 排行的 tab 是懒加载的：点开才去拉
     document.querySelectorAll('.tab').forEach((t) => {
       if (t.dataset.tab === 'leader') {
-        t.addEventListener('click', () => loadBoard());
+        t.addEventListener('click', () => {
+          loadBoard();
+          if (role === 'admin') loadAdmin();
+        });
       }
     });
 
     setInterval(tick, 4000);
     window.addEventListener('pagehide', flush);
     window.addEventListener('beforeunload', flush);
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) flush();
-    });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) flush(); });
     window.addEventListener('online', () => sync('online'));
-
-    // 开局先对一次账：服务器领先就把本地拉回去
-    if (ready()) setTimeout(() => sync('boot'), 2500);
   }
 
-  // 给控制台/调试用
   window.Cloud = {
     sync: () => sync('manual'),
     board: () => loadBoard(true),
-    setConfig: (url, key) => {
-      try { localStorage.setItem(K.cfg, JSON.stringify({ url, key })); } catch (e) {}
-      status('已保存配置', 'ok');
-    },
+    admin: () => loadAdmin(),
     get ready() { return ready(); },
-    get pid() { return pid(); }
+    get logged() { return !!tok(); }
   };
 
   if (document.readyState === 'loading') {
