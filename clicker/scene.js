@@ -110,6 +110,22 @@
   ];
 
   /* ---------------- 时间 ---------------- */
+  // 量子星球配色 / 虚空星球配色（复用已有天色，只换星球本体）
+  PALETTES.push(
+    {
+      accent: '#8ff0ff',
+      planet: { base: '#1d4d5a', light: '#c9f6ff', dark: '#06141a', blotch: '#2f7f92', blotch2: '#a8e8f5' },
+      ring: { color: '#8ff0ff', tilt: 0.52 },
+      sky: PALETTES[2].sky
+    },
+    {
+      accent: '#c6a8ff',
+      planet: { base: '#241b3a', light: '#cbb8ff', dark: '#08050f', blotch: '#3b2b5e', blotch2: '#a98ce0' },
+      ring: { color: '#c6a8ff', tilt: -0.62 },
+      sky: PALETTES[0].sky
+    }
+  );
+
   function skyOf(pal, hour) {
     var k = pal.sky, a = k[0], b = k[k.length - 1];
     for (var i = 0; i < k.length - 1; i++) {

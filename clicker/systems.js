@@ -328,7 +328,10 @@
   var GAMES = [
     { id: 'ore', name: '星矿淘金', icon: '⛏️', desc: '九宫格里埋着三块星矿，翻三格，挖到越多奖励越高。' },
     { id: 'meteor', name: '流星截击', icon: '☄️', desc: '光标来回滑动，在正中间按下，误差越小倍率越高。三轮取平均。' },
-    { id: 'memory', name: '星图记忆', icon: '🧠', desc: '记住亮起的星位顺序，依次点亮。序列越长，奖励越高。' }
+    { id: 'memory', name: '星图记忆', icon: '🧠', desc: '记住亮起的星位顺序，依次点亮。序列越长，奖励越高。' },
+    { id: 'hack', name: '序列破解', icon: '🔢', desc: '按 1 到 N 的顺序点亮，越快倍率越高。' },
+    { id: 'hunt', name: '微观猎手', icon: '🔍', desc: '九宫格里藏着几颗星核，点错一次就结束。' },
+    { id: 'pulse', name: '节律脉冲', icon: '💓', desc: '让光点停在亮区，星球越靠后越快越窄。' }
   ];
 
   function energyNow() {
@@ -378,6 +381,9 @@
 
     if (g.id === 'ore') startOre(body);
     else if (g.id === 'meteor') startMeteor(body);
+    else if (g.id === 'hack') startHack(body);
+    else if (g.id === 'hunt') startHunt(body);
+    else if (g.id === 'pulse') startPulse(body);
     else startMemory(body);
     render();
   }
@@ -537,6 +543,173 @@
       }
     }, 620);
     miniCleanup = function () { clearInterval(timer); };
+  }
+
+  /* --- 序列破解 --- */
+  function startHack(body) {
+    var n = Math.min(6, 3 + Math.floor(badgeCount() / 4));
+    var pos = [], i;
+    for (i = 1; i <= n; i++) pos.push(i);
+    for (i = pos.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = pos[i]; pos[i] = pos[j]; pos[j] = t;
+    }
+    var step = 0, start = Date.now(), done = false;
+    var grid = document.createElement('div');
+    grid.className = 'ore-grid';
+    var tip = document.createElement('p');
+    tip.className = 'mini-result';
+    tip.textContent = '按 1 → ' + n + ' 的顺序点亮，越快倍率越高';
+    body.appendChild(tip);
+    body.appendChild(grid);
+    pos.forEach(function (num) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'ore-cell';
+      b.textContent = num;
+      b.addEventListener('click', function () {
+        if (done || b.disabled) return;
+        if (num !== step + 1) {
+          done = true;
+          b.classList.add('hit');
+          tip.textContent = '顺序错了 · 保底结算';
+          setTimeout(function () { award(0.4, '序列破解'); closeGame(); }, 500);
+          return;
+        }
+        step += 1;
+        b.disabled = true;
+        b.classList.add('lit');
+        if (step >= n) {
+          done = true;
+          var sec = (Date.now() - start) / 1000;
+          var mult = Math.max(1.2, 4.5 - sec * 0.35);
+          tip.textContent = sec.toFixed(1) + ' 秒完成 · 结算 ×' + mult.toFixed(1);
+          setTimeout(function () { award(mult, '序列破解'); closeGame(); }, 500);
+        }
+      });
+      grid.appendChild(b);
+    });
+    var tm = setInterval(function () {
+      if (done) { clearInterval(tm); return; }
+      if ((Date.now() - start) / 1000 > 10) {
+        done = true;
+        clearInterval(tm);
+        award(0.3, '序列破解');
+        closeGame();
+      }
+    }, 400);
+    miniCleanup = function () { clearInterval(tm); };
+  }
+
+  /* --- 微观猎手 --- */
+  function startHunt(body) {
+    var cells = 9;
+    var targets = Math.min(5, 2 + Math.floor(badgeCount() / 5));
+    var grid = document.createElement('div');
+    grid.className = 'ore-grid';
+    var tip = document.createElement('p');
+    tip.className = 'mini-result';
+    tip.textContent = '找出 ' + targets + ' 颗隐藏星核，点错一次就结束';
+    body.appendChild(tip);
+    body.appendChild(grid);
+    var mine = {}, left = targets, over = false, start = Date.now(), k = 0;
+    while (left > 0) {
+      var idx = Math.floor(Math.random() * cells);
+      if (!mine[idx]) { mine[idx] = 1; left -= 1; }
+    }
+    var found = 0;
+    for (k = 0; k < cells; k++) (function (at) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'ore-cell';
+      b.textContent = '·';
+      b.addEventListener('click', function () {
+        if (over || b.disabled) return;
+        b.disabled = true;
+        if (mine[at]) {
+          found += 1;
+          b.textContent = '✦';
+          b.classList.add('lit');
+          if (found >= targets) {
+            over = true;
+            var sec = (Date.now() - start) / 1000;
+            var mult = Math.max(1, 3.6 - sec * 0.2) + targets * 0.3;
+            tip.textContent = '全找到了 · 结算 ×' + mult.toFixed(1);
+            setTimeout(function () { award(mult, '微观猎手'); closeGame(); }, 500);
+          }
+        } else {
+          over = true;
+          b.textContent = '✕';
+          b.classList.add('hit');
+          tip.textContent = '踩空了 · 保底结算';
+          setTimeout(function () { award(0.3, '微观猎手'); closeGame(); }, 500);
+        }
+      });
+      grid.appendChild(b);
+    })(k);
+    miniCleanup = function () {};
+  }
+
+  /* --- 节律脉冲 --- */
+  function startPulse(body) {
+    var wi = S().world;
+    var speed = 0.00055 + wi * 0.00012;
+    var zoneW = Math.max(6, 20 - wi * 2.4);
+    var track = document.createElement('div');
+    track.style.cssText = 'position:relative;height:44px;border-radius:22px;margin:6px 0 12px;' +
+      'background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);overflow:hidden';
+    var zone = document.createElement('div');
+    zone.style.cssText = 'position:absolute;top:0;bottom:0;background:rgba(120,240,190,.28);' +
+      'border-left:1px solid rgba(120,240,190,.6);border-right:1px solid rgba(120,240,190,.6)';
+    zone.style.left = (50 - zoneW / 2) + '%';
+    zone.style.width = zoneW + '%';
+    var dot = document.createElement('div');
+    dot.style.cssText = 'position:absolute;top:4px;bottom:4px;width:8px;border-radius:4px;' +
+      'background:#ffe07a;box-shadow:0 0 10px #ffe07a';
+    track.appendChild(zone);
+    track.appendChild(dot);
+    var tip = document.createElement('p');
+    tip.className = 'mini-result';
+    tip.textContent = '让光点停在亮区，三轮取平均';
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'primary mini-btn';
+    btn.textContent = '定 位';
+    body.appendChild(tip);
+    body.appendChild(track);
+    body.appendChild(btn);
+
+    var p = 0, dir = 1, raf = 0, last = 0, roundNo = 0, total = 0, lock = false;
+    function loop(now) {
+      if (!last) last = now;
+      var dt = Math.min(40, now - last);
+      last = now;
+      p += dir * speed * dt;
+      if (p > 1) { p = 1; dir = -1; }
+      if (p < 0) { p = 0; dir = 1; }
+      dot.style.left = 'calc(' + (p * 100) + '% - 4px)';
+      raf = requestAnimationFrame(loop);
+    }
+    raf = requestAnimationFrame(loop);
+    miniCleanup = function () { cancelAnimationFrame(raf); };
+
+    btn.addEventListener('click', function () {
+      if (lock) return;
+      lock = true;
+      var err = Math.abs(p - 0.5) * 100;
+      var half = zoneW / 2;
+      var mult = err < half * 0.3 ? 3 : err < half * 0.65 ? 2.2 : err < half ? 1.5 : err < half * 1.8 ? 0.9 : 0.4;
+      total += mult;
+      roundNo += 1;
+      tip.textContent = roundNo < 3 ? '第 ' + (roundNo + 1) + ' / 3 轮 · 本次 ×' + mult : '三轮结束';
+      if (roundNo >= 3) {
+        cancelAnimationFrame(raf);
+        btn.disabled = true;
+        setTimeout(function () { award(total / 3, '节律脉冲'); closeGame(); }, 600);
+      } else {
+        setTimeout(function () { lock = false; }, 250);
+      }
+    });
   }
 
   function renderMini() {

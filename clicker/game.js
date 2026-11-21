@@ -29,7 +29,7 @@
   // 每颗星球：gain 收益倍率；升级/资产/共振门槛/成就全部独立
   // kind: click 点击 / cps 每秒 / crit 暴击率 / mult 全部产出加成
   /* ===================== 1.5 星球数据 =====================
-     四颗星球 × 9 个身份 × 10 项升级。每颗星球的「收益倍率」和
+     六颗星球 × 9 个身份 × 10 项升级。每颗星球的「收益倍率」和
      「物价」一起翻倍，所以节奏一致，只换皮和绝对数字。
      ======================================================= */
 
@@ -117,7 +117,9 @@
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 50, 150, 400],
     [0, 0, 0, 0, 0, 300, 800, 1600, 3000],
-    [0, 0, 0, 0, 0, 900, 2500, 6000, 12000]
+    [0, 0, 0, 0, 0, 900, 2500, 6000, 12000],
+    [0, 0, 0, 0, 0, 1600, 4200, 9000, 18000],
+    [0, 0, 0, 0, 0, 2400, 6000, 13000, 26000]
   ];
   // 星章门槛：小游戏打出来的
   const BADGE_NEED = [
@@ -127,11 +129,47 @@
     [0, 0, 0, 0, 0, 3, 5, 8, 12]
   ];
 
+  /* ---- 第 5、6 颗星球：量子 / 虚空（数据由上面同构，玩法逐级加码） ---- */
+  RANK_SETS.push(
+    [
+      { name: '量子沫', icon: '⚛️' }, { name: '观测者', icon: '🔭' }, { name: '纠缠行者', icon: '🌀' },
+      { name: '超导骑士', icon: '⚡' }, { name: '虫洞领航', icon: '🕳️' }, { name: '量子富豪', icon: '💠' },
+      { name: '时空织者', icon: '🧵' }, { name: '薛定谔之主', icon: '🐈' }, { name: '量子之神', icon: '🌌' }
+    ],
+    [
+      { name: '虚无', icon: '🕳️' }, { name: '熵之信徒', icon: '🌫️' }, { name: '寂静行者', icon: '👤' },
+      { name: '暗物质君王', icon: '🖤' }, { name: '黑洞领主', icon: '⚫' }, { name: '维度吞噬者', icon: '🐙' },
+      { name: '终焉守望', icon: '🕯️' }, { name: '虚空主宰', icon: '👁️' }, { name: '万有归零', icon: '♾️' }
+    ]
+  );
+  UP_NAMES.push(
+    ['量子指尖', '概率无人机', '纠缠幸运符', '量子反应堆', '观测透镜', '退相干棱镜', '虫洞引擎', '叠加矩阵', '时空熔炉', '量子奇点'],
+    ['虚空触须', '熵流无人机', '寂静幸运符', '虚无反应堆', '黑洞透镜', '终焉共鸣', '维度引擎', '虚空矩阵', '永恒熔炉', '归零核心']
+  );
+  ASSET_SETS.push(
+    [
+      { name: '量子滑板', icon: '🛹', rep: 10 }, { name: '纠缠机车', icon: '🏍️', rep: 30 },
+      { name: '叠加公寓', icon: '🏢', rep: 60 }, { name: '概率飞机', icon: '✈️', rep: 120 },
+      { name: '虫洞别墅', icon: '🏡', rep: 400 }, { name: '时空城堡', icon: '🏰', rep: 1500 },
+      { name: '量子方舟', icon: '🚀', rep: 4000 }
+    ],
+    [
+      { name: '虚空浮舟', icon: '🛶', rep: 10 }, { name: '熵流战车', icon: '🚙', rep: 30 },
+      { name: '寂灭居所', icon: '⬛', rep: 60 }, { name: '维度穿梭机', icon: '🛸', rep: 120 },
+      { name: '黑洞宫殿', icon: '🏯', rep: 400 }, { name: '终焉圣殿', icon: '⛩️', rep: 1500 },
+      { name: '万有归零环', icon: '♾️', rep: 4000 }
+    ]
+  );
+  RESO_SETS.push([0, 1, 2, 3, 3, 4, 5, 6, 7], [0, 1, 2, 3, 4, 4, 5, 6, 7]);
+  BADGE_NEED.push([0, 0, 0, 0, 0, 4, 7, 10, 14], [0, 0, 0, 0, 0, 5, 9, 13, 18]);
+
   const WORLD_META = [
     { name: '暮紫星球', emoji: '🪐', gain: 1 },
     { name: '烈焰星球', emoji: '🔥', gain: 4 },
     { name: '霜蓝星球', emoji: '❄️', gain: 16 },
-    { name: '翡翠星球', emoji: '🌿', gain: 64 }
+    { name: '翡翠星球', emoji: '🌿', gain: 64 },
+    { name: '量子星球', emoji: '⚛️', gain: 256 },
+    { name: '虚空星球', emoji: '🌑', gain: 1024 }
   ];
 
   // 第 i 个身份要的累计星尘：500 × 28^i × 星球倍率
@@ -224,7 +262,7 @@
     { id: 'g_badge',  name: '星章收藏家', desc: '拿到 10 枚星章',                reward: 500000,  ok: () => state.mini && state.mini.badges >= 10 },
     { id: 'g_mini',   name: '小游戏高手', desc: '小游戏累计胜利 30 次',          reward: 400000,  ok: () => state.mini && state.mini.wins >= 30 },
     { id: 'g_idle',   name: '挂机也是玩', desc: '离线挂机累计收入 1 亿',         reward: 200000,  ok: () => state.stats && state.stats.idleDust >= 1e8 },
-    { id: 'g_clear',  name: '全剧终',     desc: '通关全部四颗星球',              reward: 50000000, ok: () => state.cleared },
+    { id: 'g_clear',  name: '全剧终',     desc: '通关全部六颗星球',              reward: 50000000, ok: () => state.cleared },
   ];
 
   // 天气城市（手动选择；默认用网络 IP 自动定位）
@@ -1135,7 +1173,7 @@
   function showClear() {
     el.clearEmoji.textContent = '🏆';
     el.clearTitle.textContent = '恭喜通关全部星球！';
-    el.clearSub.textContent = '从一粒尘埃到宇宙之王，四颗星球都被你点亮了。';
+    el.clearSub.textContent = '从一粒尘埃到宇宙之王，六颗星球都被你点亮了。';
 
     const mins = Math.max(1, Math.floor((Date.now() - state.startedAt) / 60000));
     el.clearStats.innerHTML =

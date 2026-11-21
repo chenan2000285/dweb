@@ -57,6 +57,23 @@ body[data-world="3"] {
   --glow: rgba(138, 154, 91, .28);
 }
 
+
+/* 第五颗：量子 */
+body[data-world="4"] {
+  --bg1: #0b1f24; --bg2: #07161a;
+  --acc: #58c8d8; --acc2: #c9f6ff;
+  --acc-soft: rgba(88, 200, 216, .20);
+  --glow: rgba(88, 200, 216, .30);
+}
+
+/* 第六颗：虚空 */
+body[data-world="5"] {
+  --bg1: #140f22; --bg2: #0a0714;
+  --acc: #a98ce0; --acc2: #d9c9ff;
+  --acc-soft: rgba(169, 140, 224, .20);
+  --glow: rgba(169, 140, 224, .32);
+}
+
 /* ===== 时段氛围光（跟着手机时间） ===== */
 #ambient {
   position: fixed;
